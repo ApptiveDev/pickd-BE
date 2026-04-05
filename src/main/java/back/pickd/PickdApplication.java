@@ -13,15 +13,4 @@ public class PickdApplication {
 		SpringApplication.run(PickdApplication.class, args);
 	}
 
-	@Bean
-	public CommandLineRunner testCalendar(GoogleCalendarService calendarService) {
-		return args -> {
-			try {
-				calendarService.testInsertEvent();
-			} catch (Exception e) {
-				System.err.println("❌ 테스트 실패: " + e.getMessage());
-				e.printStackTrace();
-			}
-		};
-	}
 }

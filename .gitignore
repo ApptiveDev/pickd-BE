@@ -40,3 +40,10 @@ out/
 /Users/myeongsung/Documents/pickd/src/main/resources/client.json
 /Users/myeongsung/Documents/pickd/src/main/resources/desktop.json
 /tokens
+# Security and Secret files
+application-local.properties
+.env
+tokens/
+
+# YAML Secret files
+application-local.yml
