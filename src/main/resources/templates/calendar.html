@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Pickd - 내 구글 캘린더 일정</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; padding: 20px; background-color: #f4f7f6; color: #333; }
+        .container { max-width: 1000px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border-bottom: 1px solid #eee; padding: 15px; text-align: left; }
+        th { background-color: #fafafa; font-weight: 600; }
+        tr:hover { background-color: #f9f9f9; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        .btn { padding: 10px 18px; color: white; text-decoration: none; border-radius: 6px; cursor: pointer; border: none; font-size: 14px; transition: opacity 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-add { background-color: #34a853; }
+        .btn-logout { background-color: #db4437; }
+        .btn-home { background-color: #4285f4; }
+        .btn-edit { background-color: #f4b400; font-size: 12px; padding: 6px 10px; margin-right: 5px; }
+        .btn-delete { background-color: #ea4335; font-size: 12px; padding: 6px 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📅 구글 캘린더 연동 테스트</h1>
+            <div>
+                <button onclick="addTestEvent()" class="btn btn-add">테스트 일정 추가 (+)</button>
+                <a href="/logout" class="btn btn-logout">로그아웃</a>
+                <a href="/" class="btn btn-home">홈</a>
+            </div>
+        </div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>일정명</th>
+                    <th>시작 (KST)</th>
+                    <th>종료 (KST)</th>
+                    <th>장소</th>
+                    <th>관리</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="event : ${events}">
+                    <td th:text="${event.summary}">No Summary</td>
+                    <td th:text="${event.start.dateTime != null ? event.start.dateTime : event.start.date}">-</td>
+                    <td th:text="${event.end.dateTime != null ? event.end.dateTime : event.end.date}">-</td>
+                    <td th:text="${event.location != null ? event.location : '-'}">-</td>
+                    <td>
+                        <button th:onclick="editEvent([[${event.id}]], [[${event.summary}]])" class="btn btn-edit">수정</button>
+                        <button th:onclick="deleteEvent([[${event.id}]])" class="btn btn-delete">삭제</button>
+                    </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(events)}">
+                    <td colspan="5" style="text-align: center; color: #999;">표시할 일정이 없습니다.</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const API_BASE_URL = '/api/calendar/events';
+
+        // 1. 일정 등록
+        async function addTestEvent() {
+            const offset = new Date().getTimezoneOffset() * 60000;
+            const now = new Date(Date.now() - offset);
+            const startStr = now.toISOString().split('.')[0] + '+09:00';
+            const endStr = new Date(now.getTime() + 3600000).toISOString().split('.')[0] + '+09:00';
+
+            const payload = {
+                summary: "새로운 Pickd 테스트 일정 ✨",
+                location: "내 컴퓨터",
+                description: "자동 등록 테스트",
+                start: { dateTime: startStr, timeZone: "Asia/Seoul" },
+                end: { dateTime: endStr, timeZone: "Asia/Seoul" }
+            };
+
+            try {
+                const response = await fetch(API_BASE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (response.ok) {
+                    alert("✅ 일정이 성공적으로 등록되었습니다.");
+                    location.reload();
+                } else {
+                    alert("❌ 등록 실패: " + response.status);
+                }
+            } catch (err) {
+                alert("❌ 에러 발생: " + err.message);
+            }
+        }
+
+        // 2. 일정 수정
+        async function editEvent(eventId, currentSummary) {
+            const newSummary = prompt("일정 제목을 수정하세요:", currentSummary);
+            if (!newSummary || newSummary === currentSummary) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/${eventId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ summary: newSummary })
+                });
+                if (response.ok) {
+                    alert("✅ 일정이 수정되었습니다.");
+                    location.reload();
+                } else {
+                    alert("❌ 수정 실패");
+                }
+            } catch (err) {
+                alert("❌ 에러 발생");
+            }
+        }
+
+        // 3. 일정 삭제
+        async function deleteEvent(eventId) {
+            if (!confirm("정말 이 일정을 삭제하시겠습니까?")) return;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/${eventId}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    alert("✅ 일정이 삭제되었습니다.");
+                    location.reload();
+                } else {
+                    alert("❌ 삭제 실패");
+                }
+            } catch (err) {
+                alert("❌ 에러 발생");
+            }
+        }
+    </script>
+</body>
+</html>
