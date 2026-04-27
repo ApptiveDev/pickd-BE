@@ -37,10 +37,10 @@ public class JwtTokenProvider {
     }
 
     /**
-     * Generate JWT Token from Authentication object
+     * Generate JWT Token from Email and Authorities
      */
-    public String createToken(Authentication authentication) {
-        String authorities = authentication.getAuthorities().stream()
+    public String createToken(String email, Collection<? extends GrantedAuthority> authoritiesList) {
+        String authorities = authoritiesList.stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
@@ -48,12 +48,19 @@ public class JwtTokenProvider {
         Date validity = new Date(now.getTime() + this.expirationMs);
 
         return Jwts.builder()
-                .setSubject(authentication.getName())
+                .setSubject(email)
                 .claim("auth", authorities)
                 .setIssuedAt(now)
                 .setExpiration(validity)
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+    }
+
+    /**
+     * Generate JWT Token from Authentication object
+     */
+    public String createToken(Authentication authentication) {
+        return createToken(authentication.getName(), authentication.getAuthorities());
     }
 
     /**

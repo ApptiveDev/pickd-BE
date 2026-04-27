@@ -41,6 +41,7 @@ dependencies {
 	implementation 'com.google.apis:google-api-services-calendar:v3-rev20220715-2.0.0'
 	implementation 'com.google.apis:google-api-services-drive:v3-rev20230822-2.0.0'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 
 	// JWT
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
