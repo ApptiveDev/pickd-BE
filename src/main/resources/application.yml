@@ -1,7 +1,7 @@
 spring:
   application:
     name: pickd
-  
+
   profiles:
     active: local
 
@@ -30,8 +30,8 @@ spring:
       client:
         registration:
           google:
-            client-id: ${spring.security.oauth2.client.registration.google.client-id}
-            client-secret: ${spring.security.oauth2.client.registration.google.client-secret}
+            client-id: "CLIENT_ID.apps.googleusercontent.com"
+            client-secret: "CLIENT_SECRET"
             scope:
               - profile
               - email
@@ -44,6 +44,11 @@ spring:
 
 server:
   port: 8080
+
+  servlet:
+    session:
+      cookie:
+        same-site: lax
 
 gemini:
   api:
