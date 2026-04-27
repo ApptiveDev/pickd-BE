@@ -8,12 +8,17 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.util.List;
+import java.util.TimeZone;
+import java.util.Calendar;
 
-@Controller
+@RestController
 @RequiredArgsConstructor
 public class CalendarViewController {
 
@@ -27,26 +32,26 @@ public class CalendarViewController {
         return "index";
     }
 
-    @GetMapping("/my-calendar")
-    public String viewCalendar(Authentication authentication, Model model) throws IOException, GeneralSecurityException {
-        java.util.TimeZone tz = java.util.TimeZone.getTimeZone("Asia/Seoul");
-        java.util.Calendar cal = java.util.Calendar.getInstance(tz);
+    @GetMapping("/api/calendar")
+    public List<Event> getCalendar(Authentication authentication) throws Exception {
+        TimeZone tz = TimeZone.getTimeZone("Asia/Seoul");
+        Calendar cal = Calendar.getInstance(tz);
 
-        cal.add(java.util.Calendar.DAY_OF_YEAR, -14);
-        cal.set(java.util.Calendar.HOUR_OF_DAY, 0);
-        cal.set(java.util.Calendar.MINUTE, 0);
-        cal.set(java.util.Calendar.SECOND, 0);
+        cal.add(Calendar.DAY_OF_YEAR, -14);
         DateTime timeMin = new DateTime(cal.getTime());
 
-        cal.add(java.util.Calendar.DAY_OF_YEAR, 28);
-        cal.set(java.util.Calendar.HOUR_OF_DAY, 23);
-        cal.set(java.util.Calendar.MINUTE, 59);
-        cal.set(java.util.Calendar.SECOND, 59);
+        cal.add(Calendar.DAY_OF_YEAR, 28);
         DateTime timeMax = new DateTime(cal.getTime());
 
-        List<Event> items = calendarService.getEvents(authentication, timeMin, timeMax);
+        return calendarService.getEvents(authentication, timeMin, timeMax);
+    }
 
-        model.addAttribute("events", items);
-        return "calendar";
+    @PostMapping("/api/calendar")
+    public void createEvent(Authentication auth, @RequestBody Event event) {
+        try {
+            calendarService.createEvent(auth, event);
+        } catch (IOException | GeneralSecurityException e) {
+            throw new RuntimeException("캘린더 생성 실패", e);
+        }
     }
 }
