@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pickd Pro Onboarding - 기획안 완벽 반영</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <style>
+        :root { --pickd-blue: #007AFF; --bg-gray: #F5F7FA; }
+        body { background-color: var(--bg-gray); font-family: 'Pretendard', -apple-system, sans-serif; color: #333; }
+        .onboarding-card { max-width: 700px; margin: 40px auto; background: white; padding: 40px; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); border: none; }
+        .progress-bar-container { height: 6px; background: #E0E0E0; border-radius: 3px; margin-bottom: 30px; }
+        .progress-fill { height: 100%; background: var(--pickd-blue); border-radius: 3px; transition: width 0.4s ease; }
+        .step-content { display: none; }
+        .step-content.active { display: block; animation: slideUp 0.4s ease; }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .section-title { font-weight: 800; font-size: 1.6rem; margin-bottom: 8px; letter-spacing: -0.5px; }
+        .section-sub { color: #888; margin-bottom: 30px; font-size: 0.95rem; }
+        .form-label { font-weight: 600; font-size: 0.9rem; color: #555; margin-top: 15px; }
+        .btn-next { background: var(--pickd-blue); color: white; border: none; padding: 14px; border-radius: 12px; font-weight: 700; width: 100%; margin-top: 30px; transition: all 0.2s; }
+        .btn-next:hover { background: #0056b3; transform: translateY(-2px); }
+        .form-control, .form-select { border-radius: 10px; padding: 12px; border: 1px solid #E0E0E0; background: #FCFCFC; }
+        .form-control:focus { box-shadow: 0 0 0 4px rgba(0, 122, 255, 0.1); border-color: var(--pickd-blue); }
+        .list-add-item { border: 1px dashed #CCC; padding: 15px; border-radius: 12px; margin-bottom: 10px; position: relative; }
+        .btn-remove { position: absolute; top: 5px; right: 5px; color: #FF3B30; cursor: pointer; }
+        .badge-select { cursor: pointer; border: 1px solid #DDD; padding: 8px 16px; border-radius: 20px; font-size: 0.85rem; margin-right: 5px; margin-bottom: 8px; display: inline-block; transition: all 0.2s; }
+        .badge-select.active { background: var(--pickd-blue); color: white; border-color: var(--pickd-blue); }
+    </style>
+</head>
+<body>
+
+<div class="onboarding-card">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h5 class="text-primary fw-bold mb-0">pickd.</h5>
+        <button class="btn btn-sm btn-outline-danger" onclick="resetOnboarding()">초기화 후 다시 테스트</button>
+    </div>
+    <div class="progress-bar-container">
+        <div class="progress-fill" id="progressBar" style="width: 16.6%;"></div>
+    </div>
+
+    <!-- Step 1: 약관 -->
+    <div class="step-content active" id="step1">
+        <div class="section-title">서비스 이용을 위해<br>약관에 동의해 주세요.</div>
+        <div class="section-sub">필수 항목은 반드시 동의가 필요합니다.</div>
+        <div class="card p-3 mb-4">
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="ag1" checked>
+                <label class="form-check-label fw-bold" for="ag1">[필수] 서비스 이용약관 동의</label>
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="ag2" checked>
+                <label class="form-check-label fw-bold" for="ag2">[필수] 개인정보 수집 및 이용 동의</label>
+            </div>
+            <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="ag3">
+                <label class="form-check-label" for="ag3">[선택] 마케팅 정보 수신 동의</label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" id="ag4">
+                <label class="form-check-label" for="ag4">[선택] 푸시 알림 수신 동의</label>
+            </div>
+        </div>
+        <button class="btn-next" onclick="submitStep1()">동의하고 계속하기</button>
+    </div>
+
+    <!-- Step 1.5: 본인인증 -->
+    <div class="step-content" id="stepVerify">
+        <div class="section-title">본인 확인을 진행합니다.</div>
+        <div class="section-sub">안전한 서비스 제공을 위해 실명을 확인합니다.</div>
+        <label class="form-label">이름</label>
+        <input type="text" class="form-control" id="vName" placeholder="성함을 입력해 주세요">
+        <div class="row">
+            <div class="col-6">
+                <label class="form-label">생년월일</label>
+                <input type="text" class="form-control" id="vBirth" placeholder="YYYYMMDD">
+            </div>
+            <div class="col-6">
+                <label class="form-label">휴대폰 번호</label>
+                <input type="text" class="form-control" id="vPhone" placeholder="01012345678">
+            </div>
+        </div>
+        <button class="btn-next" onclick="submitVerify()">본인 인증 완료</button>
+    </div>
+
+    <!-- Step 2: 기본정보 (A) -->
+    <div class="step-content" id="step2">
+        <div class="section-title">기본 프로필을<br>완성해 주세요.</div>
+        <div class="section-sub">추천 서비스의 기초 정보로 활용됩니다.</div>
+        <label class="form-label">닉네임 (필수)</label>
+        <input type="text" class="form-control" id="nick" placeholder="사용하실 닉네임을 입력해 주세요">
+        <label class="form-label">한 줄 소개 (선택)</label>
+        <input type="text" class="form-control" id="intro" placeholder="본인을 간단히 소개해 주세요">
+        <div class="row">
+            <div class="col-6">
+                <label class="form-label">현재 거주지</label>
+                <select class="form-select" id="curRes">
+                    <option value="서울">서울</option><option value="경기">경기</option><option value="부산">부산</option><option value="기타">기타</option>
+                </select>
+            </div>
+            <div class="col-6">
+                <label class="form-label">희망 근무지 (복수)</label>
+                <div class="mt-2">
+                    <span class="badge-select active" onclick="this.classList.toggle('active')">서울</span>
+                    <span class="badge-select" onclick="this.classList.toggle('active')">판교</span>
+                    <span class="badge-select" onclick="this.classList.toggle('active')">인천</span>
+                    <span class="badge-select" onclick="this.classList.toggle('active')">부산</span>
+                </div>
+            </div>
+        </div>
+        <button class="btn-next" onclick="submitStep2()">다음으로</button>
+    </div>
+
+    <!-- Step 3: 학력정보 (B) -->
+    <div class="step-content" id="step3">
+        <div class="section-title">학력 정보를 알려주세요.</div>
+        <div class="section-sub">전공 배경을 통해 직무 적합도를 분석합니다.</div>
+        <div class="row">
+            <div class="col-6">
+                <label class="form-label">학교명</label>
+                <input type="text" class="form-control" id="school" placeholder="앱티브대학교">
+            </div>
+            <div class="col-6">
+                <label class="form-label">전공</label>
+                <input type="text" class="form-control" id="major" placeholder="컴퓨터공학과">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <label class="form-label">복수전공</label>
+                <input type="text" class="form-control" id="dMajor" placeholder="없음">
+            </div>
+            <div class="col-6">
+                <label class="form-label">부전공</label>
+                <input type="text" class="form-control" id="minor" placeholder="없음">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-4">
+                <label class="form-label">학위</label>
+                <select class="form-select" id="degree">
+                    <option value="BACHELOR">학사</option><option value="MASTER">석사</option>
+                </select>
+            </div>
+            <div class="col-4">
+                <label class="form-label">상태</label>
+                <select class="form-select" id="status">
+                    <option value="GRADUATED">졸업</option><option value="ENROLLED">재학</option>
+                </select>
+            </div>
+            <div class="col-4">
+                <label class="form-label">졸업시기</label>
+                <input type="text" class="form-control" id="gradDate" placeholder="2024-02">
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-6">
+                <label class="form-label">학점 (4.5 기준)</label>
+                <input type="number" step="0.1" class="form-control" id="gpa" placeholder="4.0">
+            </div>
+            <div class="col-6">
+                <label class="form-label">캠퍼스/교환학생</label>
+                <input type="text" class="form-control" id="campus" placeholder="본교 / 해당없음">
+            </div>
+        </div>
+        <button class="btn-next" onclick="submitStep3()">다음으로</button>
+    </div>
+
+    <!-- Step 4: 관심분야 (C) -->
+    <div class="step-content" id="step4">
+        <div class="section-title">관심 있는 분야를<br>선택해 주세요.</div>
+        <div class="section-sub">취업 방향성에 맞는 공고를 추천해 드립니다.</div>
+        <label class="form-label">관심 산업</label>
+        <input type="text" class="form-control" id="ind" placeholder="IT, 핀테크, 커머스 등">
+        <label class="form-label">관심 직무군</label>
+        <input type="text" class="form-control" id="jobGrp" placeholder="백엔드, 프론트엔드 등">
+        <div class="row">
+            <div class="col-6">
+                <label class="form-label">희망 고용 형태</label>
+                <select class="form-select" id="empType">
+                    <option value="FULL_TIME">정규직</option><option value="INTERN">인턴</option>
+                </select>
+            </div>
+            <div class="col-6">
+                <label class="form-label">희망 연봉 범위</label>
+                <select class="form-select" id="salary">
+                    <option value="3500-4000">3500~4000</option><option value="4000-4500">4000~4500</option>
+                </select>
+            </div>
+        </div>
+        <label class="form-label">관심 키워드 (#태그)</label>
+        <input type="text" class="form-control" id="key" placeholder="#워라밸 #성장가능성 #유연근무">
+        <button class="btn-next" onclick="submitStep4()">다음으로</button>
+    </div>
+
+    <!-- Step 5: 준비상태 (D) -->
+    <div class="step-content" id="step5">
+        <div class="section-title">취업 준비 상태를<br>입력해 주세요.</div>
+        <div class="section-sub">체크리스트와 일정 관리에 활용됩니다.</div>
+        
+        <div class="row">
+            <div class="col-6">
+                <label class="form-label">지원 예정 시기</label>
+                <select class="form-select" id="targetPeriod">
+                    <option value="2026 상반기">2026 상반기</option><option value="2026 하반기">2026 하반기</option>
+                </select>
+            </div>
+            <div class="col-6">
+                <label class="form-label">현재 준비 단계</label>
+                <select class="form-select" id="curStage">
+                    <option value="READY">준비 시작</option><option value="APPLYING">서류 지원 중</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 반복형 입력: 경력/경험 -->
+        <label class="form-label">대외활동/인턴/프로젝트 <button class="btn btn-sm btn-outline-primary py-0 px-2 ms-2" onclick="addExp()">+ 추가</button></label>
+        <div id="expList"></div>
+
+        <!-- 반복형 입력: 자격증/어학 -->
+        <label class="form-label">자격증/어학점수 <button class="btn btn-sm btn-outline-primary py-0 px-2 ms-2" onclick="addCert()">+ 추가</button></label>
+        <div id="certList"></div>
+
+        <div class="d-flex justify-content-between mt-4">
+            <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="hasRes"><label class="form-check-label">이력서</label></div>
+            <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="hasEss"><label class="form-check-label">자소서</label></div>
+            <div class="form-check form-switch"><input class="form-check-input" type="checkbox" id="hasPort"><label class="form-check-label">포트폴리오</label></div>
+        </div>
+        <button class="btn-next" onclick="submitStep5()">온보딩 마무하기</button>
+    </div>
+
+    <!-- 완료 -->
+    <div class="step-content text-center" id="stepFinal">
+        <i class="bi bi-check-circle-fill" style="font-size: 5rem; color: var(--pickd-blue);"></i>
+        <h2 class="mt-4 mb-3 fw-bold">온보딩 완료!</h2>
+        <p class="text-muted">이제 픽드의 모든 서비스를<br>자유롭게 이용하실 수 있습니다.</p>
+        <button class="btn-next" onclick="location.href='/'">메인 화면으로 가기</button>
+    </div>
+</div>
+
+<script>
+    let step = 0;
+    const stepIds = ['step1', 'stepVerify', 'step2', 'step3', 'step4', 'step5', 'stepFinal'];
+    const stepEnums = ['NONE', 'TERMS', 'VERIFICATION', 'BASIC', 'EDUCATION', 'INTERESTS', 'PREP', 'COMPLETED'];
+    
+    // 페이지 로드 시 현재 상태 확인
+    window.onload = async () => {
+        try {
+            const res = await fetch('/api/onboarding/status');
+            const status = await res.text();
+            let statusIdx = stepEnums.indexOf(status);
+            if (statusIdx > 0 && statusIdx < 7) {
+                // 이미 진행 중인 단계가 있다면 해당 위치로 점프 (단, 마지막 완료 전까지만)
+                if (confirm(`이미 진행 중인 단계(${status})가 있습니다. 이어서 하시겠습니까?`)) {
+                    step = statusIdx;
+                    document.getElementById('step1').classList.remove('active');
+                    document.getElementById(stepIds[step]).classList.add('active');
+                    updateProgress();
+                }
+            }
+        } catch (e) {}
+    };
+
+    function updateProgress() {
+        document.getElementById('progressBar').style.width = ((step + 1) / 6 * 100) + '%';
+    }
+
+    async function resetOnboarding() {
+        if (confirm('정말 처음부터 다시 테스트하시겠습니까? 데이터는 유지되지만 단계는 초기화됩니다.')) {
+            await fetch('/api/onboarding/reset', { method: 'POST' });
+            location.reload();
+        }
+    }
+
+    function moveNext() {
+        document.getElementById(stepIds[step]).classList.remove('active');
+        step++;
+        document.getElementById(stepIds[step]).classList.add('active');
+        updateProgress();
+    }
+
+    // 동적 리스트 추가 함수
+    function addExp() {
+        const div = document.createElement('div');
+        div.className = 'list-add-item';
+        div.innerHTML = `
+            <i class="bi bi-x-circle btn-remove" onclick="this.parentElement.remove()"></i>
+            <select class="form-select form-select-sm mb-2 exp-type"><option value="INTERN">인턴</option><option value="PROJECT">프로젝트</option><option value="AWARD">수상</option></select>
+            <input type="text" class="form-control form-control-sm exp-title" placeholder="활동명/수상명">
+        `;
+        document.getElementById('expList').appendChild(div);
+    }
+
+    function addCert() {
+        const div = document.createElement('div');
+        div.className = 'list-add-item';
+        div.innerHTML = `
+            <i class="bi bi-x-circle btn-remove" onclick="this.parentElement.remove()"></i>
+            <input type="text" class="form-control form-control-sm mb-2 cert-name" placeholder="자격증/어학명">
+            <input type="text" class="form-control form-control-sm cert-score" placeholder="점수/급수">
+        `;
+        document.getElementById('certList').appendChild(div);
+    }
+
+    async function callApi(url, body) {
+        try {
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (res.ok) return true;
+            
+            const err = await res.json();
+            // 에러 메시지가 있으면 보여주고, 없으면 기본 메시지 출력
+            const errorMsg = err.message || err.error || "알 수 없는 오류";
+            alert("오류: " + errorMsg);
+            return false;
+        } catch (e) {
+            alert("서버 연결 실패: " + e.message);
+            return false;
+        }
+    }
+
+    async function submitStep1() {
+        const body = { serviceAgreed: true, privacyAgreed: true, marketingAgreed: document.getElementById('ag3').checked, pushAgreed: document.getElementById('ag4').checked };
+        if (await callApi('/api/onboarding/step1', body)) moveNext();
+    }
+
+    async function submitVerify() {
+        const body = { name: document.getElementById('vName').value, birthDate: document.getElementById('vBirth').value, phone: document.getElementById('vPhone').value };
+        if (await callApi('/api/onboarding/verify', body)) moveNext();
+    }
+
+    async function submitStep2() {
+        const locs = Array.from(document.querySelectorAll('#step2 .badge-select.active')).map(b => b.innerText);
+        const body = { nickname: document.getElementById('nick').value, intro: document.getElementById('intro').value, currentResidence: document.getElementById('curRes').value, desiredLocations: locs, detailedAddress: "" };
+        if (await callApi('/api/onboarding/step2', body)) moveNext();
+    }
+
+    async function submitStep3() {
+        const body = { 
+            schoolName: document.getElementById('school').value, department: document.getElementById('major').value,
+            doubleMajor: document.getElementById('dMajor').value, minor: document.getElementById('minor').value,
+            degreeType: document.getElementById('degree').value, enrollmentStatus: document.getElementById('status').value,
+            graduationDate: document.getElementById('gradDate').value, gpa: parseFloat(document.getElementById('gpa').value),
+            isTransfer: false, campus: document.getElementById('campus').value
+        };
+        if (await callApi('/api/onboarding/step3', body)) moveNext();
+    }
+
+    async function submitStep4() {
+        const body = { 
+            industries: [document.getElementById('ind').value], jobGroups: [document.getElementById('jobGrp').value],
+            employmentType: document.getElementById('empType').value, companyTypes: ["대기업"],
+            keywords: document.getElementById('key').value.split(' '), salaryRange: document.getElementById('salary').value
+        };
+        if (await callApi('/api/onboarding/step4', body)) moveNext();
+    }
+
+    async function submitStep5() {
+        const exps = Array.from(document.querySelectorAll('#expList .list-add-item')).map(item => ({
+            type: item.querySelector('.exp-type').value, title: item.querySelector('.exp-title').value, startDate: "2024-01"
+        }));
+        const certs = Array.from(document.querySelectorAll('#certList .list-add-item')).map(item => ({
+            type: "LICENSE", name: item.querySelector('.cert-name').value, score: item.querySelector('.cert-score').value
+        }));
+        
+        const body = { 
+            targetPeriod: document.getElementById('targetPeriod').value, currentStage: document.getElementById('curStage').value,
+            focusItems: ["자소서"], hasResume: document.getElementById('hasRes').checked, 
+            hasBaseEssay: document.getElementById('hasEss').checked, hasPortfolio: document.getElementById('hasPort').checked,
+            experiences: exps, certifications: certs
+        };
+        if (await callApi('/api/onboarding/step5', body)) moveNext();
+    }
+</script>
+</body>
+</html>

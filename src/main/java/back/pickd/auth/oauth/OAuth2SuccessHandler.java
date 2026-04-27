@@ -1,6 +1,8 @@
 package back.pickd.auth.oauth;
 
 import back.pickd.auth.jwt.JwtTokenProvider;
+import back.pickd.user.entity.User;
+import back.pickd.user.entity.enums.OnboardingStep;
 import back.pickd.user.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,10 +34,11 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
             OAuth2User oAuth2User = oauthToken.getPrincipal();
             Map<String, Object> attributes = oAuth2User.getAttributes();
+            String email = (String) attributes.get("email");
 
             // 1. Sync User info with DB
-            userService.saveOrUpdate(
-                    (String) attributes.get("email"),
+            User user = userService.saveOrUpdate(
+                    email,
                     (String) attributes.get("name"),
                     (String) attributes.get("picture")
             );
@@ -48,13 +51,18 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             if (client != null) {
                 authorizedClientService.saveAuthorizedClient(client, authentication);
             }
+
+            // 3. Issue Service JWT and set in HttpOnly Cookie (using email as subject)
+            String token = jwtTokenProvider.createToken(email, authentication.getAuthorities());
+            setTokenCookie(response, token);
+
+            // 4. Redirect based on onboarding status
+            if (user.getOnboardingStep() == OnboardingStep.COMPLETED) {
+                getRedirectStrategy().sendRedirect(request, response, "/");
+            } else {
+                getRedirectStrategy().sendRedirect(request, response, "/onboarding-test.html");
+            }
         }
-
-        // 3. Issue Service JWT and set in HttpOnly Cookie
-        String token = jwtTokenProvider.createToken(authentication);
-        setTokenCookie(response, token);
-
-        getRedirectStrategy().sendRedirect(request, response, "/");
     }
 
     private void setTokenCookie(HttpServletResponse response, String token) {
