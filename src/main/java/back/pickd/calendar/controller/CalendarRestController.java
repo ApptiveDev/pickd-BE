@@ -26,11 +26,18 @@ public class CalendarRestController {
     @GetMapping("/events")
     public List<Event> getEvents(Authentication authentication,
                                 @RequestParam(required = false) String timeMin,
-                                @RequestParam(required = false) String timeMax) throws IOException, GeneralSecurityException {
-        
-        DateTime min = (timeMin != null) ? new DateTime(timeMin) : new DateTime(System.currentTimeMillis());
-        DateTime max = (timeMax != null) ? new DateTime(timeMax) : new DateTime(System.currentTimeMillis() + 31536000000L);
-        
+                                @RequestParam(required = false) String timeMax)
+            throws IOException, GeneralSecurityException {
+
+        java.util.TimeZone tz = java.util.TimeZone.getTimeZone("Asia/Seoul");
+        java.util.Calendar cal = java.util.Calendar.getInstance(tz);
+
+        cal.add(java.util.Calendar.YEAR, -1);
+        DateTime min = new DateTime(cal.getTime());
+
+        cal.add(java.util.Calendar.YEAR, 2);
+        DateTime max = new DateTime(cal.getTime());
+
         return calendarService.getEvents(authentication, min, max);
     }
 
@@ -82,5 +89,11 @@ public class CalendarRestController {
     @DeleteMapping("/events/{eventId}")
     public void deleteEvent(Authentication authentication, @PathVariable String eventId) throws IOException, GeneralSecurityException {
         calendarService.deleteEvent(authentication, eventId);
+    }
+
+    @GetMapping("/me")
+    public String me(Authentication authentication) {
+        if (authentication == null) return null;
+        return authentication.getName();
     }
 }
