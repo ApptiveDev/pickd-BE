@@ -5,8 +5,7 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.Calendar;
-import com.google.api.services.calendar.model.Event;
-import com.google.api.services.calendar.model.Events;
+import com.google.api.services.calendar.model.*;
 import com.google.auth.http.HttpCredentialsAdapter;
 import com.google.auth.oauth2.AccessToken;
 import com.google.auth.oauth2.GoogleCredentials;
@@ -28,55 +27,99 @@ public class CalendarService {
 
     private final OAuth2AuthorizedClientService authorizedClientService;
 
-    /**
-     * Google Calendar API 클라이언트를 생성하여 반환합니다.
-     */
     private Calendar getCalendarClient(Authentication authentication) throws IOException, GeneralSecurityException {
-        if (authentication == null) {
-            throw new RuntimeException("인증 정보가 유효하지 않습니다. 다시 로그인해 주세요.");
-        }
+        if (authentication == null) throw new RuntimeException("로그인 필요");
 
-        // DB/메모리 저장소에서 해당 유저의 구글 인증 토큰을 조회
-        OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient("google", authentication.getName());
+        OAuth2AuthorizedClient client =
+                authorizedClientService.loadAuthorizedClient("google", authentication.getName());
 
-        if (client == null) {
-            log.error("User [{}] has no authorized Google client found in storage.", authentication.getName());
-            throw new RuntimeException("구글 인증 정보를 찾을 수 없습니다. 구글 계정 연동이 필요합니다.");
-        }
+        if (client == null) throw new RuntimeException("구글 연동 필요");
 
-        String tokenValue = client.getAccessToken().getTokenValue();
-        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(tokenValue, null));
+        String token = client.getAccessToken().getTokenValue();
+        GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(token, null));
 
         NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();
-        return new Calendar.Builder(httpTransport, GsonFactory.getDefaultInstance(), new HttpCredentialsAdapter(credentials))
+
+        return new Calendar.Builder(httpTransport, GsonFactory.getDefaultInstance(),
+                new HttpCredentialsAdapter(credentials))
                 .setApplicationName("Pickd")
                 .build();
     }
 
-    public List<Event> getEvents(Authentication authentication, DateTime timeMin, DateTime timeMax) throws IOException, GeneralSecurityException {
-        Calendar calendar = getCalendarClient(authentication);
-        Events events = calendar.events().list("primary")
+    private String getOrCreatePickdCalendar(Authentication authentication)
+            throws IOException, GeneralSecurityException {
+
+        Calendar service = getCalendarClient(authentication);
+
+        CalendarList calendarList = service.calendarList().list().execute();
+
+        for (CalendarListEntry entry : calendarList.getItems()) {
+            if ("Pickd".equals(entry.getSummary())) {
+                return entry.getId();
+            }
+        }
+
+        com.google.api.services.calendar.model.Calendar calendar =
+                new com.google.api.services.calendar.model.Calendar();
+
+        calendar.setSummary("Pickd");
+        calendar.setTimeZone("Asia/Seoul");
+
+        com.google.api.services.calendar.model.Calendar created =
+                service.calendars().insert(calendar).execute();
+
+        return created.getId();
+    }
+
+    public List<Event> getEvents(Authentication authentication, DateTime timeMin, DateTime timeMax)
+            throws IOException, GeneralSecurityException {
+
+        Calendar service = getCalendarClient(authentication);
+        String calendarId = getOrCreatePickdCalendar(authentication);
+
+        Events events = service.events().list(calendarId)
                 .setTimeMin(timeMin)
                 .setTimeMax(timeMax)
                 .setSingleEvents(true)
                 .setOrderBy("startTime")
                 .execute();
+
         return events.getItems();
     }
+    
+    public Event createEvent(Authentication authentication, Event event)
+            throws IOException, GeneralSecurityException {
 
-    public Event createEvent(Authentication authentication, Event event) throws IOException, GeneralSecurityException {
-        return getCalendarClient(authentication).events().insert("primary", event).execute();
+        Calendar service = getCalendarClient(authentication);
+        String calendarId = getOrCreatePickdCalendar(authentication);
+
+        return service.events().insert(calendarId, event).execute();
     }
 
-    public Event getEvent(Authentication authentication, String eventId) throws IOException, GeneralSecurityException {
-        return getCalendarClient(authentication).events().get("primary", eventId).execute();
+    public Event getEvent(Authentication authentication, String eventId)
+            throws IOException, GeneralSecurityException {
+
+        Calendar service = getCalendarClient(authentication);
+        String calendarId = getOrCreatePickdCalendar(authentication);
+
+        return service.events().get(calendarId, eventId).execute();
     }
 
-    public Event updateEvent(Authentication authentication, String eventId, Event event) throws IOException, GeneralSecurityException {
-        return getCalendarClient(authentication).events().update("primary", eventId, event).execute();
+    public Event updateEvent(Authentication authentication, String eventId, Event event)
+            throws IOException, GeneralSecurityException {
+
+        Calendar service = getCalendarClient(authentication);
+        String calendarId = getOrCreatePickdCalendar(authentication);
+
+        return service.events().update(calendarId, eventId, event).execute();
     }
 
-    public void deleteEvent(Authentication authentication, String eventId) throws IOException, GeneralSecurityException {
-        getCalendarClient(authentication).events().delete("primary", eventId).execute();
+    public void deleteEvent(Authentication authentication, String eventId)
+            throws IOException, GeneralSecurityException {
+
+        Calendar service = getCalendarClient(authentication);
+        String calendarId = getOrCreatePickdCalendar(authentication);
+
+        service.events().delete(calendarId, eventId).execute();
     }
 }
