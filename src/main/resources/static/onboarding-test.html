@@ -241,32 +241,34 @@
 <script>
     let step = 0;
     const stepIds = ['step1', 'stepVerify', 'step2', 'step3', 'step4', 'step5', 'stepFinal'];
-    const stepEnums = ['NONE', 'TERMS', 'VERIFICATION', 'BASIC', 'EDUCATION', 'INTERESTS', 'PREP', 'COMPLETED'];
     
-    // 페이지 로드 시 현재 상태 확인
     window.onload = async () => {
         try {
             const res = await fetch('/api/onboarding/status');
-            const status = await res.text();
-            let statusIdx = stepEnums.indexOf(status);
-            if (statusIdx > 0 && statusIdx < 7) {
-                // 이미 진행 중인 단계가 있다면 해당 위치로 점프 (단, 마지막 완료 전까지만)
-                if (confirm(`이미 진행 중인 단계(${status})가 있습니다. 이어서 하시겠습니까?`)) {
-                    step = statusIdx;
-                    document.getElementById('step1').classList.remove('active');
-                    document.getElementById(stepIds[step]).classList.add('active');
-                    updateProgress();
+            if (res.ok) {
+                const user = await res.json();
+                
+                const statusMap = { 'NONE': 0, 'TERMS': 1, 'VERIFICATION': 2, 'BASIC': 3, 'EDUCATION': 4, 'INTERESTS': 5, 'COMPLETED': 6 };
+                let statusIdx = statusMap[user.onboardingStep] || 0;
+                
+                if (statusIdx > 0 && statusIdx < 6) {
+                    if (confirm(`이미 진행 중인 단계(${user.onboardingStep})가 있습니다. 이어서 하시겠습니까?`)) {
+                        step = statusIdx;
+                        document.querySelectorAll('.step-content').forEach(s => s.classList.remove('active'));
+                        document.getElementById(stepIds[step]).classList.add('active');
+                        updateProgress();
+                    }
                 }
             }
-        } catch (e) {}
+        } catch (e) { console.error("상태 확인 실패", e); }
     };
 
     function updateProgress() {
-        document.getElementById('progressBar').style.width = ((step + 1) / 6 * 100) + '%';
+        document.getElementById('progressBar').style.width = ((step + 1) / 7 * 100) + '%';
     }
 
     async function resetOnboarding() {
-        if (confirm('정말 처음부터 다시 테스트하시겠습니까? 데이터는 유지되지만 단계는 초기화됩니다.')) {
+        if (confirm('정말 처음부터 다시 테스트하시겠습니까?')) {
             await fetch('/api/onboarding/reset', { method: 'POST' });
             location.reload();
         }
@@ -275,8 +277,75 @@
     function moveNext() {
         document.getElementById(stepIds[step]).classList.remove('active');
         step++;
-        document.getElementById(stepIds[step]).classList.add('active');
-        updateProgress();
+        if (stepIds[step]) {
+            document.getElementById(stepIds[step]).classList.add('active');
+            updateProgress();
+        }
+    }
+
+    async function submitOnboarding(body) {
+        try {
+            const res = await fetch('/api/onboarding', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            
+            if (res.ok) {
+                moveNext();
+                return true;
+            }
+            
+            const err = await res.json();
+            alert("오류: " + (err.message || "서버 에러"));
+            return false;
+        } catch (e) {
+            alert("서버 연결 실패: " + e.message);
+            return false;
+        }
+    }
+
+    async function submitStep1() {
+        await submitOnboarding({ serviceAgreed: true, privacyAgreed: true, marketingAgreed: document.getElementById('ag3').checked, pushAgreed: document.getElementById('ag4').checked });
+    }
+
+    async function submitVerify() {
+        await submitOnboarding({ name: document.getElementById('vName').value, birthDate: document.getElementById('vBirth').value, phone: document.getElementById('vPhone').value });
+    }
+
+    async function submitStep2() {
+        const locs = Array.from(document.querySelectorAll('#step2 .badge-select.active')).map(b => b.innerText);
+        await submitOnboarding({ nickname: document.getElementById('nick').value, intro: document.getElementById('intro').value, currentResidence: document.getElementById('curRes').value, desiredLocations: locs });
+    }
+
+    async function submitStep3() {
+        await submitOnboarding({ 
+            schoolName: document.getElementById('school').value, department: document.getElementById('major').value,
+            degreeType: document.getElementById('degree').value, enrollmentStatus: document.getElementById('status').value,
+            graduationDate: document.getElementById('gradDate').value, gpa: parseFloat(document.getElementById('gpa').value)
+        });
+    }
+
+    async function submitStep4() {
+        await submitOnboarding({ 
+            industries: [document.getElementById('ind').value], jobGroups: [document.getElementById('jobGrp').value],
+            employmentType: document.getElementById('empType').value, salaryRange: document.getElementById('salary').value
+        });
+    }
+
+    async function submitStep5() {
+        const exps = Array.from(document.querySelectorAll('#expList .list-add-item')).map(item => ({
+            type: item.querySelector('.exp-type').value, title: item.querySelector('.exp-title').value
+        }));
+        const certs = Array.from(document.querySelectorAll('#certList .list-add-item')).map(item => ({
+            name: item.querySelector('.cert-name').value, score: item.querySelector('.cert-score').value
+        }));
+        
+        await submitOnboarding({ 
+            targetPeriod: document.getElementById('targetPeriod').value, currentStage: document.getElementById('curStage').value,
+            hasResume: document.getElementById('hasRes').checked, hasBaseEssay: document.getElementById('hasEss').checked, 
+            hasPortfolio: document.getElementById('hasPort').checked, experiences: exps, certifications: certs
+        });
     }
 
     // 동적 리스트 추가 함수
@@ -301,79 +370,7 @@
         `;
         document.getElementById('certList').appendChild(div);
     }
-
-    async function callApi(url, body) {
-        try {
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(body)
-            });
-            if (res.ok) return true;
-            
-            const err = await res.json();
-            // 에러 메시지가 있으면 보여주고, 없으면 기본 메시지 출력
-            const errorMsg = err.message || err.error || "알 수 없는 오류";
-            alert("오류: " + errorMsg);
-            return false;
-        } catch (e) {
-            alert("서버 연결 실패: " + e.message);
-            return false;
-        }
-    }
-
-    async function submitStep1() {
-        const body = { serviceAgreed: true, privacyAgreed: true, marketingAgreed: document.getElementById('ag3').checked, pushAgreed: document.getElementById('ag4').checked };
-        if (await callApi('/api/onboarding/step1', body)) moveNext();
-    }
-
-    async function submitVerify() {
-        const body = { name: document.getElementById('vName').value, birthDate: document.getElementById('vBirth').value, phone: document.getElementById('vPhone').value };
-        if (await callApi('/api/onboarding/verify', body)) moveNext();
-    }
-
-    async function submitStep2() {
-        const locs = Array.from(document.querySelectorAll('#step2 .badge-select.active')).map(b => b.innerText);
-        const body = { nickname: document.getElementById('nick').value, intro: document.getElementById('intro').value, currentResidence: document.getElementById('curRes').value, desiredLocations: locs, detailedAddress: "" };
-        if (await callApi('/api/onboarding/step2', body)) moveNext();
-    }
-
-    async function submitStep3() {
-        const body = { 
-            schoolName: document.getElementById('school').value, department: document.getElementById('major').value,
-            doubleMajor: document.getElementById('dMajor').value, minor: document.getElementById('minor').value,
-            degreeType: document.getElementById('degree').value, enrollmentStatus: document.getElementById('status').value,
-            graduationDate: document.getElementById('gradDate').value, gpa: parseFloat(document.getElementById('gpa').value),
-            isTransfer: false, campus: document.getElementById('campus').value
-        };
-        if (await callApi('/api/onboarding/step3', body)) moveNext();
-    }
-
-    async function submitStep4() {
-        const body = { 
-            industries: [document.getElementById('ind').value], jobGroups: [document.getElementById('jobGrp').value],
-            employmentType: document.getElementById('empType').value, companyTypes: ["대기업"],
-            keywords: document.getElementById('key').value.split(' '), salaryRange: document.getElementById('salary').value
-        };
-        if (await callApi('/api/onboarding/step4', body)) moveNext();
-    }
-
-    async function submitStep5() {
-        const exps = Array.from(document.querySelectorAll('#expList .list-add-item')).map(item => ({
-            type: item.querySelector('.exp-type').value, title: item.querySelector('.exp-title').value, startDate: "2024-01"
-        }));
-        const certs = Array.from(document.querySelectorAll('#certList .list-add-item')).map(item => ({
-            type: "LICENSE", name: item.querySelector('.cert-name').value, score: item.querySelector('.cert-score').value
-        }));
-        
-        const body = { 
-            targetPeriod: document.getElementById('targetPeriod').value, currentStage: document.getElementById('curStage').value,
-            focusItems: ["자소서"], hasResume: document.getElementById('hasRes').checked, 
-            hasBaseEssay: document.getElementById('hasEss').checked, hasPortfolio: document.getElementById('hasPort').checked,
-            experiences: exps, certifications: certs
-        };
-        if (await callApi('/api/onboarding/step5', body)) moveNext();
-    }
 </script>
+
 </body>
 </html>

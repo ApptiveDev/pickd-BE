@@ -1,0 +1,77 @@
+package back.pickd.user.dto.onboarding;
+
+import back.pickd.user.entity.enums.DegreeType;
+import back.pickd.user.entity.enums.EnrollmentStatus;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+
+import java.util.List;
+
+@Getter
+@NoArgsConstructor
+public class OnboardingRequest {
+    // Step 1: Terms
+    private Boolean serviceAgreed;
+    private Boolean privacyAgreed;
+    private Boolean marketingAgreed;
+    private Boolean pushAgreed;
+
+    // Step 1.5: Verification
+    private String name;
+    private String birthDate;
+    private String phone;
+
+    // Step 2: Basic Info
+    private String nickname;
+    private String intro;
+    private String currentResidence;
+    private List<String> desiredLocations;
+    private String detailedAddress;
+
+    // Step 3: Education
+    private String schoolName;
+    private String department;
+    private String doubleMajor;
+    private String minor;
+    private DegreeType degreeType;
+    private EnrollmentStatus enrollmentStatus;
+    private String graduationDate;
+    private Double gpa;
+    private String campus;
+
+    // Step 4: Interests
+    private List<String> industries;
+    private List<String> jobGroups;
+    private String employmentType;
+    private List<String> companyTypes;
+    private List<String> keywords;
+    private String targetCompany;
+    private String salaryRange;
+
+    // Step 5: Prep Status
+    private String targetPeriod;
+    private String currentStage;
+    private List<String> focusItems;
+    private Boolean hasResume;
+    private Boolean hasBaseEssay;
+    private Boolean hasPortfolio;
+    private List<ExperienceDto> experiences;
+    private List<CertificationDto> certifications;
+
+    @Getter @NoArgsConstructor
+    public static class ExperienceDto {
+        private String type;
+        private String title;
+        private String startDate;
+        private String endDate;
+    }
+
+    @Getter @NoArgsConstructor
+    public static class CertificationDto {
+        private String name;
+        private String score;
+        private String acquisitionDate;
+    }
+}

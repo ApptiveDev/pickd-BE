@@ -33,9 +33,10 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
             OAuth2User oAuth2User = oauthToken.getPrincipal();
             Map<String, Object> attributes = oAuth2User.getAttributes();
+            String email = (String) attributes.get("email");
 
             userService.saveOrUpdate(
-                    (String) attributes.get("email"),
+                    email,
                     (String) attributes.get("name"),
                     (String) attributes.get("picture")
             );
@@ -48,12 +49,13 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             if (client != null) {
                 authorizedClientService.saveAuthorizedClient(client, authentication);
             }
+
+            String token = jwtTokenProvider.createToken(email, authentication.getAuthorities());
+            setTokenCookie(response, token);
+
+            // 온보딩 테스트를 위해 테스트 페이지로 리다이렉트
+            getRedirectStrategy().sendRedirect(request, response, "/onboarding-test.html");
         }
-
-        String token = jwtTokenProvider.createToken(authentication);
-        setTokenCookie(response, token);
-
-        response.sendRedirect("http://localhost:5173");
     }
 
     private void setTokenCookie(HttpServletResponse response, String token) {
