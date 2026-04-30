@@ -30,38 +30,30 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException {
-        
+
         if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
             OAuth2User oAuth2User = oauthToken.getPrincipal();
             Map<String, Object> attributes = oAuth2User.getAttributes();
             String email = (String) attributes.get("email");
 
-            // 1. Sync User info with DB
-            User user = userService.saveOrUpdate(
+            userService.saveOrUpdate(
                     email,
                     (String) attributes.get("name"),
                     (String) attributes.get("picture")
             );
 
-            // 2. Ensure Google OAuth2 Token is stored in Persistent Storage (JDBC)
             OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(
                     oauthToken.getAuthorizedClientRegistrationId(),
                     oauthToken.getName());
-            
+
             if (client != null) {
                 authorizedClientService.saveAuthorizedClient(client, authentication);
             }
 
-            // 3. Issue Service JWT and set in HttpOnly Cookie (using email as subject)
             String token = jwtTokenProvider.createToken(email, authentication.getAuthorities());
             setTokenCookie(response, token);
 
-            // 4. Redirect based on onboarding status
-            if (user.getOnboardingStep() == OnboardingStep.COMPLETED) {
-                getRedirectStrategy().sendRedirect(request, response, "/");
-            } else {
-                getRedirectStrategy().sendRedirect(request, response, "/onboarding-test.html");
-            }
+            getRedirectStrategy().sendRedirect(request, response, "/onboarding-test.html");
         }
     }
 

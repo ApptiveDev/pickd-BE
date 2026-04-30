@@ -1,13 +1,10 @@
-package back.pickd.config.exception;
+package back.pickd.global.error;
 
 import lombok.Builder;
 import lombok.Getter;
 
 import java.time.LocalDateTime;
 
-/**
- * 프론트엔드에 전달할 공통 에러 응답 객체
- */
 @Getter
 @Builder
 public class ErrorResponse {

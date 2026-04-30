@@ -1,6 +1,6 @@
 package back.pickd.user.service;
 
-import back.pickd.user.dto.onboarding.*;
+import back.pickd.user.dto.onboarding.OnboardingRequest;
 import back.pickd.user.entity.*;
 import back.pickd.user.entity.enums.OnboardingStep;
 import back.pickd.user.repository.*;
@@ -13,133 +13,100 @@ import org.springframework.transaction.annotation.Transactional;
 public class OnboardingService {
 
     private final UserRepository userRepository;
-    private final UserEducationRepository educationRepository;
     private final UserLocationRepository locationRepository;
+    private final UserEducationRepository educationRepository;
     private final UserInterestRepository interestRepository;
     private final UserPrepStatusRepository prepStatusRepository;
     private final UserExperienceRepository experienceRepository;
     private final UserCertificationRepository certificationRepository;
 
     @Transactional
-    public void saveStep1Terms(User user, Step1TermsRequest request) {
-        User targetUser = userRepository.findById(user.getId())
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        validateStep(targetUser, OnboardingStep.NONE);
-        updateTerms(targetUser, request);
-        targetUser.updateOnboardingStep(OnboardingStep.TERMS);
-        userRepository.save(targetUser);
+    public User updateOnboarding(String email, OnboardingRequest dto) {
+        User user = userRepository.findByEmail(email).orElseThrow();
+
+        if (dto.getServiceAgreed() != null) {
+            user.updateTerms(dto.getServiceAgreed(), dto.getPrivacyAgreed(), dto.getMarketingAgreed(), dto.getPushAgreed());
+        }
+        if (dto.getName() != null) {
+            user.verify(dto.getName(), dto.getBirthDate(), dto.getPhone());
+        }
+        if (dto.getNickname() != null) {
+            user.updateNickname(dto.getNickname());
+            user.updateIntro(dto.getIntro());
+        }
+
+        updateRelatedEntities(user, dto);
+        updateCurrentStep(user, dto);
+
+        return user;
+    }
+
+    private void updateRelatedEntities(User user, OnboardingRequest dto) {
+        if (dto.getCurrentResidence() != null) {
+            UserLocation loc = user.getLocation() != null ? user.getLocation() : UserLocation.builder().user(user).build();
+            loc.update(dto.getCurrentResidence(), dto.getDesiredLocations(), dto.getDetailedAddress());
+            user.setLocation(loc);
+        }
+        if (dto.getSchoolName() != null) {
+            UserEducation edu = user.getEducation() != null ? user.getEducation() : UserEducation.builder().user(user).build();
+            edu.update(dto.getSchoolName(), dto.getDepartment(), dto.getDoubleMajor(), dto.getMinor(), dto.getDegreeType(), 
+                       dto.getEnrollmentStatus(), dto.getGraduationDate(), dto.getGpa(), false, dto.getCampus(), null, null);
+            user.setEducation(edu);
+        }
+        if (dto.getIndustries() != null) {
+            UserInterest inter = user.getInterest() != null ? user.getInterest() : UserInterest.builder().user(user).build();
+            inter.update(dto.getIndustries(), dto.getJobGroups(), dto.getEmploymentType(), dto.getCompanyTypes(), dto.getKeywords(), null, dto.getTargetCompany(), dto.getSalaryRange(), null, null, null, null);
+            user.setInterest(inter);
+        }
+        if (dto.getTargetPeriod() != null) {
+            UserPrepStatus prep = user.getPrepStatus() != null ? user.getPrepStatus() : UserPrepStatus.builder().user(user).build();
+            prep.update(dto.getTargetPeriod(), dto.getCurrentStage(), dto.getFocusItems(), 
+                        dto.getHasResume() != null && dto.getHasResume(), 
+                        dto.getHasBaseEssay() != null && dto.getHasBaseEssay(), 
+                        dto.getHasPortfolio() != null && dto.getHasPortfolio(), null, null);
+            user.setPrepStatus(prep);
+            updateListInfos(user, dto);
+        }
+    }
+
+    private void updateCurrentStep(User user, OnboardingRequest dto) {
+        if (dto.getTargetPeriod() != null) user.updateOnboardingStep(OnboardingStep.COMPLETED);
+        else if (dto.getIndustries() != null) user.updateOnboardingStep(OnboardingStep.INTERESTS);
+        else if (dto.getSchoolName() != null) user.updateOnboardingStep(OnboardingStep.EDUCATION);
+        else if (dto.getNickname() != null) user.updateOnboardingStep(OnboardingStep.BASIC);
+        else if (dto.getName() != null) user.updateOnboardingStep(OnboardingStep.VERIFICATION);
+        else if (dto.getServiceAgreed() != null) user.updateOnboardingStep(OnboardingStep.TERMS);
+    }
+
+    private void updateListInfos(User user, OnboardingRequest dto) {
+        if (dto.getExperiences() != null) {
+            experienceRepository.deleteByUser(user);
+            dto.getExperiences().forEach(e -> experienceRepository.save(
+                UserExperience.builder()
+                    .user(user)
+                    .type(e.getType())
+                    .title(e.getTitle())
+                    .startDate(e.getStartDate())
+                    .endDate(e.getEndDate())
+                    .build()
+            ));
+        }
+        if (dto.getCertifications() != null) {
+            certificationRepository.deleteByUser(user);
+            dto.getCertifications().forEach(c -> certificationRepository.save(
+                UserCertification.builder()
+                    .user(user)
+                    .type("LICENSE")
+                    .name(c.getName())
+                    .score(c.getScore())
+                    .acquisitionDate(c.getAcquisitionDate())
+                    .build()
+            ));
+        }
     }
 
     @Transactional
-    public void saveVerification(User user, StepVerificationRequest request) {
-        User targetUser = userRepository.findById(user.getId()).orElseThrow();
-        validateStep(targetUser, OnboardingStep.TERMS);
-        targetUser.verify(request.getName(), request.getBirthDate(), request.getPhone());
-        targetUser.updateOnboardingStep(OnboardingStep.VERIFICATION);
-    }
-
-    @Transactional
-    public void saveStep2BasicInfo(User user, Step2BasicInfoRequest request) {
-        User targetUser = userRepository.findById(user.getId()).orElseThrow();
-        validateStep(targetUser, OnboardingStep.VERIFICATION);
-        targetUser.updateNickname(request.getNickname());
-        targetUser.updateIntro(request.getIntro());
-        
-        UserLocation location = targetUser.getLocation();
-        if (location == null) {
-            location = UserLocation.builder().user(targetUser).build();
-        }
-        location.update(request.getCurrentResidence(), request.getDesiredLocations(), request.getDetailedAddress());
-        locationRepository.save(location);
-        
-        targetUser.updateOnboardingStep(OnboardingStep.BASIC);
-    }
-
-    @Transactional
-    public void saveStep3Education(User user, Step3EducationRequest request) {
-        User targetUser = userRepository.findById(user.getId()).orElseThrow();
-        validateStep(targetUser, OnboardingStep.BASIC);
-        
-        UserEducation education = targetUser.getEducation();
-        if (education == null) {
-            education = UserEducation.builder().user(targetUser).build();
-        }
-        education.update(request.getSchoolName(), request.getDepartment(), request.getDoubleMajor(), request.getMinor(),
-                request.getDegreeType(), request.getEnrollmentStatus(), request.getGraduationDate(),
-                request.getGpa(), request.isTransfer(), request.getCampus(), request.getExchangeExperience(), request.getCourses());
-        educationRepository.save(education);
-        
-        targetUser.updateOnboardingStep(OnboardingStep.EDUCATION);
-    }
-
-    @Transactional
-    public void saveStep4Interest(User user, Step4InterestRequest request) {
-        User targetUser = userRepository.findById(user.getId()).orElseThrow();
-        validateStep(targetUser, OnboardingStep.EDUCATION);
-        
-        UserInterest interest = targetUser.getInterest();
-        if (interest == null) {
-            interest = UserInterest.builder().user(targetUser).build();
-        }
-        interest.update(request.getIndustries(), request.getJobGroups(), request.getEmploymentType(),
-                request.getCompanyTypes(), request.getKeywords(), request.getSpecificJob(),
-                request.getTargetCompany(), request.getSalaryRange(), request.getJobPriority(),
-                request.getIndustryPriority(), request.getWorkType(), request.getApplyTypes());
-        interestRepository.save(interest);
-        
-        targetUser.updateOnboardingStep(OnboardingStep.INTERESTS);
-    }
-
-    @Transactional
-    public void saveStep5PrepStatus(User user, Step5PrepStatusRequest request) {
-        User targetUser = userRepository.findById(user.getId()).orElseThrow();
-        validateStep(targetUser, OnboardingStep.INTERESTS);
-        
-        UserPrepStatus prepStatus = targetUser.getPrepStatus();
-        if (prepStatus == null) {
-            prepStatus = UserPrepStatus.builder().user(targetUser).build();
-        }
-        prepStatus.update(request.getTargetPeriod(), request.getCurrentStage(), request.getFocusItems(),
-                request.isHasResume(), request.isHasBaseEssay(), request.isHasPortfolio(),
-                request.getPreparingExams(), request.getTargetApplyCount());
-        prepStatusRepository.save(prepStatus);
-
-        // 경험/자격증은 N개이므로 기존 것을 지우고 새로 저장 (Update 시 중복 방지)
-        experienceRepository.deleteByUser(targetUser);
-        if (request.getExperiences() != null) {
-            request.getExperiences().forEach(exp -> {
-                experienceRepository.save(UserExperience.builder()
-                        .user(targetUser).type(exp.getType()).title(exp.getTitle())
-                        .description(exp.getDescription()).startDate(exp.getStartDate()).endDate(exp.getEndDate()).build());
-            });
-        }
-
-        certificationRepository.deleteByUser(targetUser);
-        if (request.getCertifications() != null) {
-            request.getCertifications().forEach(cert -> {
-                certificationRepository.save(UserCertification.builder()
-                        .user(targetUser).type(cert.getType()).name(cert.getName())
-                        .score(cert.getScore()).acquisitionDate(cert.getAcquisitionDate()).build());
-            });
-        }
-        
-        targetUser.updateOnboardingStep(OnboardingStep.COMPLETED);
-    }
-
-    @Transactional
-    public void resetOnboarding(User user) {
-        User targetUser = userRepository.findById(user.getId()).orElseThrow();
-        targetUser.updateOnboardingStep(OnboardingStep.NONE);
-        userRepository.save(targetUser);
-    }
-
-    private void updateTerms(User user, Step1TermsRequest request) {
-        user.updateTerms(request.isServiceAgreed(), request.isPrivacyAgreed(), request.isMarketingAgreed(), request.isPushAgreed());
-    }
-
-    private void validateStep(User user, OnboardingStep requiredStep) {
-        if (user.getOnboardingStep().ordinal() < requiredStep.ordinal()) {
-            throw new IllegalStateException("잘못된 온보딩 단계입니다. (현재: " + user.getOnboardingStep() + ", 기대: " + requiredStep + ")");
-        }
+    public void resetOnboarding(String email) {
+        userRepository.findByEmail(email).ifPresent(u -> u.updateOnboardingStep(OnboardingStep.NONE));
     }
 }
