@@ -1,8 +1,6 @@
 package back.pickd.auth.oauth;
 
 import back.pickd.auth.jwt.JwtTokenProvider;
-import back.pickd.user.entity.User;
-import back.pickd.user.entity.enums.OnboardingStep;
 import back.pickd.user.service.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -28,7 +26,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final UserService userService;
 
     @Override
-    public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
+    public void onAuthenticationSuccess(HttpServletRequest request,
+                                        HttpServletResponse response,
                                         Authentication authentication) throws IOException {
 
         if (authentication instanceof OAuth2AuthenticationToken oauthToken) {
@@ -44,7 +43,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
 
             OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(
                     oauthToken.getAuthorizedClientRegistrationId(),
-                    oauthToken.getName());
+                    oauthToken.getName()
+            );
 
             if (client != null) {
                 authorizedClientService.saveAuthorizedClient(client, authentication);
@@ -53,6 +53,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             String token = jwtTokenProvider.createToken(email, authentication.getAuthorities());
             setTokenCookie(response, token);
 
+            // 온보딩 테스트를 위해 테스트 페이지로 리다이렉트
             getRedirectStrategy().sendRedirect(request, response, "/onboarding-test.html");
         }
     }
@@ -61,7 +62,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         Cookie cookie = new Cookie("accessToken", token);
         cookie.setHttpOnly(true);
         cookie.setPath("/");
-        cookie.setMaxAge(86400); // 1 day
+        cookie.setMaxAge(86400);
         response.addCookie(cookie);
     }
 }
