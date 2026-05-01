@@ -54,7 +54,6 @@ public class User {
     @Column(nullable = false)
     private OnboardingStep onboardingStep;
 
-    // --- 약관 동의 ---
     @Column(nullable = false)
     private boolean serviceAgreed;
 
@@ -66,7 +65,6 @@ public class User {
 
     @Column(nullable = false)
     private boolean pushAgreed;
-    // ----------------
 
     @Column
     private LocalDateTime lastLoginDate;
@@ -100,6 +98,22 @@ public class User {
         this.marketingAgreed = marketingAgreed;
         this.pushAgreed = pushAgreed;
         this.lastLoginDate = LocalDateTime.now();
+    }
+
+    public void setEducation(UserEducation education) {
+        this.education = education;
+    }
+
+    public void setLocation(UserLocation location) {
+        this.location = location;
+    }
+
+    public void setInterest(UserInterest interest) {
+        this.interest = interest;
+    }
+
+    public void setPrepStatus(UserPrepStatus prepStatus) {
+        this.prepStatus = prepStatus;
     }
 
     public User update(String name, String picture) {
