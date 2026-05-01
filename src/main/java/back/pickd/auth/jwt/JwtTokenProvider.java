@@ -60,7 +60,19 @@ public class JwtTokenProvider {
      * Generate JWT Token from Authentication object
      */
     public String createToken(Authentication authentication) {
-        return createToken(authentication.getName(), authentication.getAuthorities());
+        Object principal = authentication.getPrincipal();
+
+        String email;
+
+        if (principal instanceof org.springframework.security.oauth2.core.user.OAuth2User oauthUser) {
+            email = (String) oauthUser.getAttributes().get("email");
+        } else if (principal instanceof User user) {
+            email = user.getUsername();
+        } else {
+            throw new RuntimeException("Unknown principal type");
+        }
+
+        return createToken(email, authentication.getAuthorities());
     }
 
     /**
