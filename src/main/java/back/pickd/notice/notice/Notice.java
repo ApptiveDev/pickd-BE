@@ -1,10 +1,6 @@
 package back.pickd.notice.notice;
 
-import back.pickd.notice.company.NoticeCompanyInfo;
-import back.pickd.notice.document.ApplicationDocument;
 import back.pickd.notice.enums.JobCategory;
-import back.pickd.notice.guideline.NoticeGuideline;
-import back.pickd.notice.process.NoticeProcess;
 import back.pickd.notice.section.NoticeSection;
 import back.pickd.user.entity.User;
 import jakarta.persistence.*;
@@ -70,22 +66,15 @@ public class Notice {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt; // 수정 일시
 
-    // ===================== 연관관계 (양방향) =====================
+    // ===================== 연관관계 (양방향 - 중간 노드만) =====================
 
+    /**
+     * NoticeSection은 자식(자격요건, 우대사항, 문항)을 가진 중간 노드이므로 cascade 유지
+     * NoticeProcess, ApplicationDocument, NoticeCompanyInfo, NoticeGuideline은
+     * 리프 노드이므로 단방향(@ManyToOne)으로만 연결하고 별도 Repository로 저장
+     */
     @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<NoticeSection> sections = new ArrayList<>(); // 모집 부문 목록
-
-    @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<NoticeProcess> processes = new ArrayList<>(); // 전형 절차 목록
-
-    @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ApplicationDocument> documents = new ArrayList<>(); // 제출 서류 목록
-
-    @OneToOne(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
-    private NoticeCompanyInfo companyInfo; // 기업 정보 (1:1)
-
-    @OneToOne(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
-    private NoticeGuideline guideline; // 유의사항 (1:1)
 
     // ===================== 연관관계 편의 메소드 =====================
 
@@ -93,30 +82,6 @@ public class Notice {
     public void addSection(NoticeSection section) {
         sections.add(section);
         section.setNotice(this); // 반대편 FK 설정
-    }
-
-    /** 전형 절차 추가 (양방향 동기화) */
-    public void addProcess(NoticeProcess process) {
-        processes.add(process);
-        process.setNotice(this); // 반대편 FK 설정
-    }
-
-    /** 제출 서류 추가 (양방향 동기화) */
-    public void addDocument(ApplicationDocument document) {
-        documents.add(document);
-        document.setNotice(this); // 반대편 FK 설정
-    }
-
-    /** 기업 정보 설정 (양방향 동기화) */
-    public void assignCompanyInfo(NoticeCompanyInfo companyInfo) {
-        this.companyInfo = companyInfo;
-        companyInfo.setNotice(this); // 반대편 FK 설정
-    }
-
-    /** 유의사항 설정 (양방향 동기화) */
-    public void assignGuideline(NoticeGuideline guideline) {
-        this.guideline = guideline;
-        guideline.setNotice(this); // 반대편 FK 설정
     }
 
     // ===================== 생명주기 =====================
