@@ -1,6 +1,11 @@
 package back.pickd.notice.notice;
 
+import back.pickd.notice.company.NoticeCompanyInfo;
+import back.pickd.notice.document.ApplicationDocument;
 import back.pickd.notice.enums.JobCategory;
+import back.pickd.notice.guideline.NoticeGuideline;
+import back.pickd.notice.process.NoticeProcess;
+import back.pickd.notice.section.NoticeSection;
 import back.pickd.user.entity.User;
 import jakarta.persistence.*;
 import lombok.Builder;
@@ -8,6 +13,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -63,6 +70,57 @@ public class Notice {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt; // 수정 일시
 
+    // ===================== 연관관계 (양방향) =====================
+
+    @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NoticeSection> sections = new ArrayList<>(); // 모집 부문 목록
+
+    @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<NoticeProcess> processes = new ArrayList<>(); // 전형 절차 목록
+
+    @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ApplicationDocument> documents = new ArrayList<>(); // 제출 서류 목록
+
+    @OneToOne(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private NoticeCompanyInfo companyInfo; // 기업 정보 (1:1)
+
+    @OneToOne(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private NoticeGuideline guideline; // 유의사항 (1:1)
+
+    // ===================== 연관관계 편의 메소드 =====================
+
+    /** 모집 부문 추가 (양방향 동기화) */
+    public void addSection(NoticeSection section) {
+        sections.add(section);
+        section.setNotice(this); // 반대편 FK 설정
+    }
+
+    /** 전형 절차 추가 (양방향 동기화) */
+    public void addProcess(NoticeProcess process) {
+        processes.add(process);
+        process.setNotice(this); // 반대편 FK 설정
+    }
+
+    /** 제출 서류 추가 (양방향 동기화) */
+    public void addDocument(ApplicationDocument document) {
+        documents.add(document);
+        document.setNotice(this); // 반대편 FK 설정
+    }
+
+    /** 기업 정보 설정 (양방향 동기화) */
+    public void assignCompanyInfo(NoticeCompanyInfo companyInfo) {
+        this.companyInfo = companyInfo;
+        companyInfo.setNotice(this); // 반대편 FK 설정
+    }
+
+    /** 유의사항 설정 (양방향 동기화) */
+    public void assignGuideline(NoticeGuideline guideline) {
+        this.guideline = guideline;
+        guideline.setNotice(this); // 반대편 FK 설정
+    }
+
+    // ===================== 생명주기 =====================
+
     @PrePersist
     public void prePersist() {
         LocalDateTime now = LocalDateTime.now();
@@ -74,6 +132,8 @@ public class Notice {
     public void preUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    // ===================== 생성자 =====================
 
     @Builder
     public Notice(User user, String companyName, String noticeName, JobCategory category,

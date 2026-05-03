@@ -79,6 +79,11 @@ public class SectionQualification {
         this.updatedAt = LocalDateTime.now();
     }
 
+    /** NoticeSection 단방향에서 호출 시 반대편 FK 설정용 */
+    public void setSection(NoticeSection section) {
+        this.section = section;
+    }
+
     @Builder
     public SectionQualification(NoticeSection section, String generalQualification,
                                 String mandatoryQualification, String eligibilityRequirement,

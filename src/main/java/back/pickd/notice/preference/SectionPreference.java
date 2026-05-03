@@ -68,6 +68,11 @@ public class SectionPreference {
         this.updatedAt = LocalDateTime.now();
     }
 
+    /** NoticeSection 단방향에서 호출 시 반대편 FK 설정용 */
+    public void setSection(NoticeSection section) {
+        this.section = section;
+    }
+
     @Builder
     public SectionPreference(NoticeSection section, String generalPreference, String additionalPoints,
                              String veteranPreference, String disabilityPreference, String localTalentPreference,

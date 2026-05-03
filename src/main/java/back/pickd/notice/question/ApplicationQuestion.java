@@ -61,6 +61,11 @@ public class ApplicationQuestion {
         this.updatedAt = LocalDateTime.now();
     }
 
+    /** NoticeSection 단방향에서 호출 시 반대편 FK 설정용 */
+    public void setSection(NoticeSection section) {
+        this.section = section;
+    }
+
     @Builder
     public ApplicationQuestion(NoticeSection section, QuestionType questionType,
                                Integer questionNumber, String questionContent,

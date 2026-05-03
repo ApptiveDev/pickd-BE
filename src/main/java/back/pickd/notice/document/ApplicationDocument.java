@@ -74,6 +74,11 @@ public class ApplicationDocument {
         this.updatedAt = LocalDateTime.now();
     }
 
+    /** Notice 단방향에서 호출 시 반대편 FK 설정용 */
+    public void setNotice(Notice notice) {
+        this.notice = notice;
+    }
+
     @Builder
     public ApplicationDocument(Notice notice, String targetType, String applyMethod,
                                String applyUrlOrEmail, String mandatoryDocuments,
