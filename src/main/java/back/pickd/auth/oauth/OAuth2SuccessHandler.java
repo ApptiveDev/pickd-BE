@@ -58,8 +58,8 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
             String token = jwtTokenProvider.createToken(email, authentication.getAuthorities());
             setTokenCookie(response, token);
 
-            // 온보딩 테스트를 위해 테스트 페이지로 리다이렉트
-            response.sendRedirect("http://localhost:5173/onboarding");
+            // 테스트를 위해 백엔드 포트의 테스트 페이지로 이동
+            response.sendRedirect("http://localhost:8080/onboarding-test.html");
         }
     }
 
