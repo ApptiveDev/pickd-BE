@@ -24,7 +24,7 @@ public class ApplicationService {
 
     private Event buildEvent(String type, String company, String jobTitle, LocalDateTime dateTime) {
         Event event = new Event();
-        event.setSummary(type + " " + company + " " + jobTitle);
+        event.setSummary(company + " " + jobTitle + " " + type);
 
         DateTime googleDateTime = new DateTime(java.sql.Timestamp.valueOf(dateTime));
 
@@ -56,12 +56,12 @@ public class ApplicationService {
         applicationRepository.save(app);
 
         if (dto.getApplyDate() != null) {
-            Event event = buildEvent("[지원]", dto.getCompany(), dto.getJobTitle(), dto.getApplyDate());
+            Event event = buildEvent("제출", dto.getCompany(), dto.getJobTitle(), dto.getApplyDate());
             Event created = calendarService.createEvent(auth, event);
             app.setApplyEventId(created.getId());
         }
         if (dto.getDeadlineDate() != null) {
-            Event event = buildEvent("[마감]", dto.getCompany(), dto.getJobTitle(), dto.getDeadlineDate());
+            Event event = buildEvent("마감", dto.getCompany(), dto.getJobTitle(), dto.getDeadlineDate());
             Event created = calendarService.createEvent(auth, event);
             app.setDeadlineEventId(created.getId());
         }
@@ -95,7 +95,7 @@ public class ApplicationService {
         app.setDeadlineDate(dto.getDeadlineDate());
 
         if (dto.getApplyDate() != null) {
-            Event event = buildEvent("[지원]", dto.getCompany(), dto.getJobTitle(), dto.getApplyDate());
+            Event event = buildEvent("제출", dto.getCompany(), dto.getJobTitle(), dto.getApplyDate());
             if (app.getApplyEventId() != null) {
                 calendarService.updateEvent(auth, app.getApplyEventId(), event);
             } else {
@@ -110,7 +110,7 @@ public class ApplicationService {
         }
 
         if (dto.getDeadlineDate() != null) {
-            Event event = buildEvent("[마감]", dto.getCompany(), dto.getJobTitle(), dto.getDeadlineDate());
+            Event event = buildEvent("마감", dto.getCompany(), dto.getJobTitle(), dto.getDeadlineDate());
 
             if (app.getDeadlineEventId() != null) {
                 calendarService.updateEvent(auth, app.getDeadlineEventId(), event);
