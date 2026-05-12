@@ -29,7 +29,7 @@ public class TodoService {
                 !dto.getDueTime().isBlank()
         ) {
             LocalDateTime dueDateTime = LocalDateTime.parse(
-                    dto.getDueDate() + " " + dto.getDueTime()
+                    dto.getDueDate() + "T" + dto.getDueTime()
             );
             todo.setDueDateTime(dueDateTime);
         }
