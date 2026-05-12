@@ -1,10 +1,9 @@
-package back.pickd.user.controller;
+package back.pickd.application.controller;
 
-import back.pickd.user.dto.ApplicationRequest;
-import back.pickd.user.entity.Application;
-import back.pickd.user.service.ApplicationService;
-import back.pickd.user.repository.ApplicationRepository;
-
+import back.pickd.application.entity.Application;
+import back.pickd.application.repository.ApplicationRepository;
+import back.pickd.application.dto.request.ApplicationRequest;
+import back.pickd.application.service.ApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;

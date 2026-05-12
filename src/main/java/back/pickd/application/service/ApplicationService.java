@@ -1,13 +1,13 @@
-package back.pickd.user.service;
+package back.pickd.application.service;
 
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.client.util.DateTime;
 
-import back.pickd.user.entity.Application;
-import back.pickd.user.dto.ApplicationRequest;
-import back.pickd.user.repository.ApplicationRepository;
-import back.pickd.calendar.service.CalendarService;
+import back.pickd.application.entity.Application;
+import back.pickd.application.repository.ApplicationRepository;
+import back.pickd.application.dto.request.ApplicationRequest;
+import back.pickd.calendar.service.CalendarAsyncService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,7 @@ import java.time.LocalDateTime;
 @RequiredArgsConstructor
 public class ApplicationService {
     private final ApplicationRepository applicationRepository;
-    private final CalendarService calendarService;
+    private final CalendarAsyncService calendarAsyncService;
 
     private Event buildEvent(String type, String company, String jobTitle, LocalDateTime dateTime) {
         Event event = new Event();
@@ -47,6 +47,7 @@ public class ApplicationService {
         app.setCompany(dto.getCompany());
         app.setJobTitle(dto.getJobTitle());
         app.setApplyDate(dto.getApplyDate());
+        app.setInterviewDate(dto.getInterviewDate());
         app.setDeadlineDate(dto.getDeadlineDate());
         app.setPosition(dto.getPosition());
         app.setIndustry(dto.getIndustry());
@@ -57,13 +58,15 @@ public class ApplicationService {
 
         if (dto.getApplyDate() != null) {
             Event event = buildEvent("제출", dto.getCompany(), dto.getJobTitle(), dto.getApplyDate());
-            Event created = calendarService.createEvent(auth, event);
-            app.setApplyEventId(created.getId());
+            calendarAsyncService.createEventAsync(app.getId(), "apply", auth, event);
+        }
+        if (dto.getInterviewDate() != null) {
+            Event event = buildEvent("면접", dto.getCompany(), dto.getJobTitle(), dto.getInterviewDate());
+            calendarAsyncService.createEventAsync(app.getId(), "interview", auth, event);
         }
         if (dto.getDeadlineDate() != null) {
             Event event = buildEvent("마감", dto.getCompany(), dto.getJobTitle(), dto.getDeadlineDate());
-            Event created = calendarService.createEvent(auth, event);
-            app.setDeadlineEventId(created.getId());
+            calendarAsyncService.createEventAsync(app.getId(), "deadline", auth, event);
         }
         applicationRepository.save(app);
     }
@@ -73,10 +76,13 @@ public class ApplicationService {
         Application app = applicationRepository.findById(id).orElseThrow();
 
         if (app.getApplyEventId() != null) {
-            calendarService.deleteEvent(auth, app.getApplyEventId());
+            calendarAsyncService.deleteEventAsync(auth, app.getApplyEventId());
         }
         if (app.getDeadlineEventId() != null) {
-            calendarService.deleteEvent(auth, app.getDeadlineEventId());
+            calendarAsyncService.deleteEventAsync(auth, app.getDeadlineEventId());
+        }
+        if (app.getInterviewEventId() != null) {
+            calendarAsyncService.deleteEventAsync(auth, app.getInterviewEventId());
         }
         applicationRepository.delete(app);
     }
@@ -93,34 +99,46 @@ public class ApplicationService {
         app.setMemo(dto.getMemo());
         app.setApplyDate(dto.getApplyDate());
         app.setDeadlineDate(dto.getDeadlineDate());
+        app.setInterviewDate(dto.getInterviewDate());
 
         if (dto.getApplyDate() != null) {
             Event event = buildEvent("제출", dto.getCompany(), dto.getJobTitle(), dto.getApplyDate());
             if (app.getApplyEventId() != null) {
-                calendarService.updateEvent(auth, app.getApplyEventId(), event);
+                calendarAsyncService.updateEventAsync(auth, app.getApplyEventId(), event);
             } else {
-                Event created = calendarService.createEvent(auth, event);
-                app.setApplyEventId(created.getId());
+                calendarAsyncService.createEventAsync(app.getId(), "apply", auth, event);
             }
         } else {
             if (app.getApplyEventId() != null) {
-                calendarService.deleteEvent(auth, app.getApplyEventId());
+                calendarAsyncService.deleteEventAsync(auth, app.getApplyEventId());
                 app.setApplyEventId(null);
             }
         }
+        if (dto.getInterviewDate() != null) {
+            Event event = buildEvent("면접", dto.getCompany(), dto.getJobTitle(), dto.getInterviewDate());
 
+            if (app.getInterviewEventId() != null) {
+                calendarAsyncService.updateEventAsync(auth, app.getInterviewEventId(), event);
+            } else {
+                calendarAsyncService.createEventAsync(app.getId(), "interview", auth, event);
+            }
+        } else {
+            if (app.getInterviewEventId() != null) {
+                calendarAsyncService.deleteEventAsync(auth, app.getInterviewEventId());
+                app.setInterviewEventId(null);
+            }
+        }
         if (dto.getDeadlineDate() != null) {
             Event event = buildEvent("마감", dto.getCompany(), dto.getJobTitle(), dto.getDeadlineDate());
 
             if (app.getDeadlineEventId() != null) {
-                calendarService.updateEvent(auth, app.getDeadlineEventId(), event);
+                calendarAsyncService.updateEventAsync(auth, app.getDeadlineEventId(), event);
             } else {
-                Event created = calendarService.createEvent(auth, event);
-                app.setDeadlineEventId(created.getId());
+                calendarAsyncService.createEventAsync(app.getId(), "deadline", auth, event);
             }
         } else {
             if (app.getDeadlineEventId() != null) {
-                calendarService.deleteEvent(auth, app.getDeadlineEventId());
+                calendarAsyncService.deleteEventAsync(auth, app.getDeadlineEventId());
                 app.setDeadlineEventId(null);
             }
         }

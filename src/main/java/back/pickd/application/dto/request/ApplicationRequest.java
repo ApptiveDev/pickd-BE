@@ -1,4 +1,4 @@
-package back.pickd.user.dto;
+package back.pickd.application.dto.request;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -16,5 +16,6 @@ public class ApplicationRequest {
     private String memo;
 
     private LocalDateTime applyDate;
+    private LocalDateTime interviewDate;
     private LocalDateTime deadlineDate;
 }
