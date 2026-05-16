@@ -2,6 +2,8 @@ package back.pickd.application.entity;
 
 import java.util.List;
 
+import back.pickd.document.entity.Document;
+
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import java.util.ArrayList;
@@ -39,4 +41,12 @@ public class Application {
     private String applyEventId;
     private String interviewEventId;
     private String deadlineEventId;
+
+    @OneToMany(
+        mappedBy = "application",
+        cascade = CascadeType.ALL,
+        orphanRemoval = true
+    )
+    @Builder.Default
+    private List<Document> documents = new ArrayList<>();
 }
