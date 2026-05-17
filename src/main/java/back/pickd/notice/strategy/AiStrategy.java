@@ -1,5 +1,6 @@
-package back.pickd.job.entity;
+package back.pickd.notice.strategy;
 
+import back.pickd.notice.question.ApplicationQuestion;
 import back.pickd.user.entity.User;
 import back.pickd.user.entity.UserExperience;
 import jakarta.persistence.*;
@@ -7,7 +8,7 @@ import lombok.*;
 
 @Entity
 @Getter
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Table(name = "ai_strategies")
 public class AiStrategy {
 
@@ -16,33 +17,31 @@ public class AiStrategy {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "job_id")
-    private JobAnnouncement jobAnnouncement;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "question_id", nullable = false)
+    private ApplicationQuestion applicationQuestion;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "experience_id")
     private UserExperience matchedExperience;
 
-    @Column(columnDefinition = "TEXT")
-    private String essayQuestion;
-
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private SwotStrategy strategy;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String jdTargeting;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String dynamicFraming;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String strategyDerivation;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String writingGuide;
 
     public enum SwotStrategy {
@@ -50,13 +49,12 @@ public class AiStrategy {
     }
 
     @Builder
-    public AiStrategy(User user, JobAnnouncement jobAnnouncement, UserExperience matchedExperience,
-                      String essayQuestion, SwotStrategy strategy, String jdTargeting,
+    public AiStrategy(User user, ApplicationQuestion applicationQuestion, UserExperience matchedExperience,
+                      SwotStrategy strategy, String jdTargeting,
                       String dynamicFraming, String strategyDerivation, String writingGuide) {
         this.user = user;
-        this.jobAnnouncement = jobAnnouncement;
+        this.applicationQuestion = applicationQuestion;
         this.matchedExperience = matchedExperience;
-        this.essayQuestion = essayQuestion;
         this.strategy = strategy;
         this.jdTargeting = jdTargeting;
         this.dynamicFraming = dynamicFraming;
