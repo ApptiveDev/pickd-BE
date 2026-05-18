@@ -54,3 +54,6 @@ gemini:
   api:
     key: ${gemini.api.key}
     url: https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent
+
+ai-server:
+  url: http://localhost:8000
