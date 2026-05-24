@@ -52,6 +52,7 @@ public class ApplicationService {
         app.setPosition(dto.getPosition());
         app.setIndustry(dto.getIndustry());
         app.setStatus(dto.getStatus());
+        app.setImportant(dto.isImportant());
         app.setMemo(dto.getMemo());
 
         applicationRepository.save(app);
@@ -96,6 +97,7 @@ public class ApplicationService {
         app.setPosition(dto.getPosition());
         app.setIndustry(dto.getIndustry());
         app.setStatus(dto.getStatus());
+        app.setImportant(dto.isImportant());
         app.setMemo(dto.getMemo());
         app.setApplyDate(dto.getApplyDate());
         app.setDeadlineDate(dto.getDeadlineDate());

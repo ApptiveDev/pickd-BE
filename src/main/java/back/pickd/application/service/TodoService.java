@@ -1,6 +1,7 @@
 package back.pickd.application.service;
 
 import back.pickd.application.dto.request.TodoRequest;
+import back.pickd.application.dto.response.TodoResponse;
 import back.pickd.application.entity.Application;
 import back.pickd.application.entity.Todo;
 import back.pickd.application.repository.ApplicationRepository;
@@ -16,7 +17,7 @@ import java.time.LocalDateTime;
 public class TodoService {
     private final TodoRepository todoRepository;
     private final ApplicationRepository applicationRepository;
-    public Todo addTodo(TodoRequest dto) {
+    public TodoResponse addTodo(TodoRequest dto){
         Todo todo = new Todo();
         todo.setTitle(dto.getTitle());
         todo.setCompleted(false);
@@ -40,15 +41,22 @@ public class TodoService {
 
             todo.setApplication(application);
         }
-        return todoRepository.save(todo);
+        Todo saved = todoRepository.save(todo);
+        return TodoResponse.from(saved);
     }
 
-    public List<Todo> getTodos() {
-        return todoRepository.findAll();
+    public List<TodoResponse> getTodos() {
+        return todoRepository.findAllWithApplication()
+                .stream()
+                .map(TodoResponse::from)
+                .toList();
     }
 
-    public List<Todo> getTodosByApplication(Long applicationId) {
-        return todoRepository.findByApplicationId(applicationId);
+    public List<TodoResponse> getTodosByApplication(Long applicationId) {
+        return todoRepository.findByApplicationId(applicationId)
+                .stream()
+                .map(TodoResponse::from)
+                .toList();
     }
 
     public void toggleTodo(Long id) {

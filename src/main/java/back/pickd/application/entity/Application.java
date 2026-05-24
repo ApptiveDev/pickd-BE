@@ -42,6 +42,9 @@ public class Application {
     private String interviewEventId;
     private String deadlineEventId;
 
+    @Column(nullable = false)
+    private boolean important = false;
+    
     @OneToMany(
         mappedBy = "application",
         cascade = CascadeType.ALL,

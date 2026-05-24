@@ -1,6 +1,7 @@
 package back.pickd.application.controller;
 
 import back.pickd.application.dto.request.TodoRequest;
+import back.pickd.application.dto.response.TodoResponse;
 import back.pickd.application.entity.Todo;
 import back.pickd.application.service.TodoService;
 import lombok.RequiredArgsConstructor;
@@ -15,17 +16,17 @@ public class TodoController {
     private final TodoService todoService;
 
     @PostMapping
-    public Todo addTodo(@RequestBody TodoRequest dto) {
+    public TodoResponse addTodo(@RequestBody TodoRequest dto) {
         return todoService.addTodo(dto);
     }
 
     @GetMapping
-    public List<Todo> getTodos() {
+    public List<TodoResponse> getTodos() {
         return todoService.getTodos();
     }
 
     @GetMapping("/{applicationId}")
-    public List<Todo> getTodosByApplication(
+    public List<TodoResponse> getTodosByApplication(
             @PathVariable Long applicationId
     ) {
         return todoService.getTodosByApplication(applicationId);
