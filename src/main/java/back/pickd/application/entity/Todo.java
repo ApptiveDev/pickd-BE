@@ -31,4 +31,7 @@ public class Todo {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "application_id")
     private Application application;
+
+    @Column(name = "calendar_event_id")
+    private String calendarEventId;
 }

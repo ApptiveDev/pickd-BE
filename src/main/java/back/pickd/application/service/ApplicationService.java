@@ -56,16 +56,29 @@ public class ApplicationService {
         app.setMemo(dto.getMemo());
 
         applicationRepository.save(app);
+        String status = dto.getStatus();
 
-        if (dto.getApplyDate() != null) {
+        boolean needApplyEvent =
+                status.equals("지원 예정") ||
+                status.equals("작성중");
+
+        boolean needInterviewEvent =
+                status.equals("제출 완료") ||
+                status.equals("결과 대기") ||
+                status.equals("면접 전형");
+
+        boolean needDeadlineEvent =
+                status.equals("최종 결과");
+
+        if (needApplyEvent && dto.getApplyDate() != null) {
             Event event = buildEvent("제출", dto.getCompany(), dto.getJobTitle(), dto.getApplyDate());
             calendarAsyncService.createEventAsync(app.getId(), "apply", auth, event);
         }
-        if (dto.getInterviewDate() != null) {
+        if (needInterviewEvent && dto.getInterviewDate() != null) {
             Event event = buildEvent("면접", dto.getCompany(), dto.getJobTitle(), dto.getInterviewDate());
             calendarAsyncService.createEventAsync(app.getId(), "interview", auth, event);
         }
-        if (dto.getDeadlineDate() != null) {
+        if (needDeadlineEvent && dto.getDeadlineDate() != null) {
             Event event = buildEvent("마감", dto.getCompany(), dto.getJobTitle(), dto.getDeadlineDate());
             calendarAsyncService.createEventAsync(app.getId(), "deadline", auth, event);
         }
@@ -103,7 +116,21 @@ public class ApplicationService {
         app.setDeadlineDate(dto.getDeadlineDate());
         app.setInterviewDate(dto.getInterviewDate());
 
-        if (dto.getApplyDate() != null) {
+        String status = dto.getStatus();
+
+        boolean needApplyEvent =
+                status.equals("지원 예정") ||
+                status.equals("작성중");
+
+        boolean needInterviewEvent =
+                status.equals("제출 완료") ||
+                status.equals("결과 대기") ||
+                status.equals("면접 전형");
+
+        boolean needDeadlineEvent =
+                status.equals("최종 결과");
+
+        if (needApplyEvent && dto.getApplyDate() != null) {
             Event event = buildEvent("제출", dto.getCompany(), dto.getJobTitle(), dto.getApplyDate());
             if (app.getApplyEventId() != null) {
                 calendarAsyncService.updateEventAsync(auth, app.getApplyEventId(), event);
@@ -116,7 +143,7 @@ public class ApplicationService {
                 app.setApplyEventId(null);
             }
         }
-        if (dto.getInterviewDate() != null) {
+        if (needInterviewEvent && dto.getInterviewDate() != null) {
             Event event = buildEvent("면접", dto.getCompany(), dto.getJobTitle(), dto.getInterviewDate());
 
             if (app.getInterviewEventId() != null) {
@@ -130,7 +157,7 @@ public class ApplicationService {
                 app.setInterviewEventId(null);
             }
         }
-        if (dto.getDeadlineDate() != null) {
+        if (needDeadlineEvent && dto.getDeadlineDate() != null) {
             Event event = buildEvent("마감", dto.getCompany(), dto.getJobTitle(), dto.getDeadlineDate());
 
             if (app.getDeadlineEventId() != null) {

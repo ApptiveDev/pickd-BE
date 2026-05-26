@@ -7,8 +7,10 @@ import lombok.Setter;
 @Setter
 public class TodoRequest {
     private String title;
-    private String dueDate;
-    private String dueTime;
+    private String dueDateTime;
     private String memo;
     private Long applicationId;
+
+    private String company;
+    private String jobTitle;
 }

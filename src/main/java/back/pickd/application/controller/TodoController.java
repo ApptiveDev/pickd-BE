@@ -2,9 +2,9 @@ package back.pickd.application.controller;
 
 import back.pickd.application.dto.request.TodoRequest;
 import back.pickd.application.dto.response.TodoResponse;
-import back.pickd.application.entity.Todo;
 import back.pickd.application.service.TodoService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,8 +16,11 @@ public class TodoController {
     private final TodoService todoService;
 
     @PostMapping
-    public TodoResponse addTodo(@RequestBody TodoRequest dto) {
-        return todoService.addTodo(dto);
+    public TodoResponse addTodo(
+            @RequestBody TodoRequest dto,
+            Authentication authentication
+    ) {
+        return todoService.addTodo(dto, authentication);
     }
 
     @GetMapping
@@ -25,7 +28,7 @@ public class TodoController {
         return todoService.getTodos();
     }
 
-    @GetMapping("/{applicationId}")
+    @GetMapping("/application/{applicationId}")
     public List<TodoResponse> getTodosByApplication(
             @PathVariable Long applicationId
     ) {
@@ -38,7 +41,10 @@ public class TodoController {
     }
 
     @DeleteMapping("/{id}")
-    public void deleteTodo(@PathVariable Long id) {
-        todoService.deleteTodo(id);
+    public void deleteTodo(
+            @PathVariable Long id,
+            Authentication authentication
+    ) {
+        todoService.deleteTodo(id, authentication);
     }
 }
