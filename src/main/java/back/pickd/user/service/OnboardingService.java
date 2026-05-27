@@ -2,7 +2,9 @@ package back.pickd.user.service;
 
 import back.pickd.user.dto.onboarding.OnboardingRequest;
 import back.pickd.user.entity.*;
-import back.pickd.user.entity.enums.OnboardingStep;
+import back.pickd.user.entity.enums.*;
+import java.util.HashMap;
+import java.util.Map;
 import back.pickd.user.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -81,15 +83,52 @@ public class OnboardingService {
     private void updateListInfos(User user, OnboardingRequest dto) {
         if (dto.getExperiences() != null) {
             experienceRepository.deleteByUser(user);
-            dto.getExperiences().forEach(e -> experienceRepository.save(
-                UserExperience.builder()
-                    .user(user)
-                    .type(e.getType())
-                    .title(e.getTitle())
-                    .startDate(e.getStartDate())
-                    .endDate(e.getEndDate())
-                    .build()
-            ));
+            dto.getExperiences().forEach(e -> {
+                ExperienceType expType = ExperienceType.PROJECT;
+                ExperienceGroup expGroup = ExperienceGroup.NARRATIVE;
+                
+                String rawType = e.getType();
+                if ("AWARD".equals(rawType)) {
+                    expType = ExperienceType.AWARD;
+                    expGroup = ExperienceGroup.SPEC;
+                } else if ("INTERN".equals(rawType)) {
+                    expType = ExperienceType.INTERN;
+                    expGroup = ExperienceGroup.NARRATIVE;
+                } else if ("ACTIVITY".equals(rawType)) {
+                    expType = ExperienceType.ACTIVITY;
+                    expGroup = ExperienceGroup.NARRATIVE;
+                } else if ("PROJECT".equals(rawType)) {
+                    expType = ExperienceType.PROJECT;
+                    expGroup = ExperienceGroup.NARRATIVE;
+                }
+
+                Map<String, Object> attributes = new HashMap<>();
+                String periodVal = (e.getStartDate() != null ? e.getStartDate() : "") 
+                        + " ~ " 
+                        + (e.getEndDate() != null ? e.getEndDate() : "");
+                
+                if (expType == ExperienceType.AWARD) {
+                    attributes.put("수상일", e.getEndDate());
+                } else if (expType == ExperienceType.INTERN) {
+                    attributes.put("근무/참여 기간", periodVal);
+                } else if (expType == ExperienceType.ACTIVITY) {
+                    attributes.put("활동 기간", periodVal);
+                } else {
+                    attributes.put("진행 기간", periodVal);
+                }
+
+                experienceRepository.save(
+                    UserExperience.builder()
+                        .user(user)
+                        .title(e.getTitle())
+                        .experienceType(expType)
+                        .experienceGroup(expGroup)
+                        .status(Status.COMPLETED)
+                        .attributes(attributes)
+                        .documentContent("")
+                        .build()
+                );
+            });
         }
         if (dto.getCertifications() != null) {
             certificationRepository.deleteByUser(user);

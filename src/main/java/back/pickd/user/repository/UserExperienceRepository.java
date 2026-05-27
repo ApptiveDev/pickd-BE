@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface UserExperienceRepository extends JpaRepository<UserExperience, Long> {
+public interface UserExperienceRepository extends JpaRepository<UserExperience, String> {
     @Modifying
     @Query("delete from UserExperience e where e.user = :user")
     void deleteByUser(User user);
