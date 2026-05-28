@@ -11,7 +11,9 @@ public enum ExperienceType {
     LICENSE("자격증"),
     AWARD("수상"),
     COURSE("수강과목"),
-    EDUCATION("교육 이수");
+    EDUCATION("교육 이수"),
+    ALBA("알바"),
+    RESEARCH("학부연구생");
 
     private final String koreanName;
 

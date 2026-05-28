@@ -1,5 +1,6 @@
 package back.pickd.user.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -16,6 +17,7 @@ public class ExperienceLink {
     @Column(length = 36)
     private String id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "experience_id", nullable = false)
     private UserExperience userExperience;
