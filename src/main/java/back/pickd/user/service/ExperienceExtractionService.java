@@ -1,10 +1,13 @@
 package back.pickd.user.service;
 
 import back.pickd.global.infra.ai.AiClient;
+import back.pickd.global.infra.ai.dto.AiExperienceMergeCheckRequest;
 import back.pickd.global.infra.ai.dto.AiStep1Response;
 import back.pickd.global.infra.ai.dto.AiStep2Response;
 import back.pickd.global.infra.s3.FileUploadType;
 import back.pickd.global.infra.s3.S3Service;
+import back.pickd.user.dto.ExperienceMergeConflictResponse;
+import back.pickd.user.dto.ExperienceStep2SaveResult;
 import back.pickd.user.entity.*;
 import back.pickd.user.entity.enums.ExperienceGroup;
 import back.pickd.user.entity.enums.ExperienceType;
@@ -32,6 +35,7 @@ public class ExperienceExtractionService {
     private final ExperienceTempRepository tempRepository;
     private final UserExperienceRepository experienceRepository;
     private final UserService userService;
+    private final ExperienceMergeService experienceMergeService;
 
     /**
      * 1차 경험 후보 추출 및 임시 캐싱
@@ -70,7 +74,7 @@ public class ExperienceExtractionService {
      * 2차 선택형 정밀 분석 및 UserExperience 최종 영구 저장
      */
     @Transactional
-    public List<UserExperience> extractStep2(String email, List<Long> selectedTempIds) {
+    public ExperienceStep2SaveResult extractStep2(String email, List<Long> selectedTempIds) {
         if (selectedTempIds == null || selectedTempIds.isEmpty()) {
             throw new IllegalArgumentException("선택된 임시 경험 ID가 없습니다.");
         }
@@ -94,15 +98,25 @@ public class ExperienceExtractionService {
                 ))
                 .collect(Collectors.toList());
 
+        List<AiExperienceMergeCheckRequest.ExperiencePayload> existingExperiences =
+                experienceMergeService.buildExistingExperiencePayloads(user);
+
         // 3. AI 2차 분석 호출 (S3 CloudFront URL을 던져 2차 정밀 분석 수행)
-        AiStep2Response aiResponse = aiClient.extractStep2ByUrl(resumeUrl, selectedSummaries);
+        AiStep2Response aiResponse = aiClient.extractStep2ByUrl(resumeUrl, selectedSummaries, existingExperiences);
 
         // 4. 2차 상세 분석 결과 영구 저장 및 파일 연동
         List<UserExperience> savedExperiences = new ArrayList<>();
+        List<ExperienceMergeConflictResponse> mergeCandidates = new ArrayList<>();
         if (aiResponse.getExperiences() != null) {
             for (AiStep2Response.Step2ExperienceDto dto : aiResponse.getExperiences()) {
                 ExperienceGroup group = convertGroup(dto.getExperience_group());
                 ExperienceType type = convertType(dto.getExperience_type());
+
+                experienceMergeService.buildStep2MergeCandidate(user, dto, type, group)
+                        .ifPresent(mergeCandidates::add);
+                if (dto.isNeeds_merge()) {
+                    continue;
+                }
 
                 // UserExperience 빌드 및 attributes JSONB 통짜 적재
                 UserExperience userExperience = UserExperience.builder()
@@ -134,7 +148,7 @@ public class ExperienceExtractionService {
         // 5. 사용 완료된 임시 캐시 데이터 일괄 삭제
         tempRepository.deleteByUser(user);
 
-        return savedExperiences;
+        return new ExperienceStep2SaveResult(savedExperiences, mergeCandidates);
     }
 
     private ExperienceGroup convertGroup(String koreanGroup) {

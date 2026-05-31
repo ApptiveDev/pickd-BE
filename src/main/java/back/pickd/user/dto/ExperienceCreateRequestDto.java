@@ -38,6 +38,8 @@ public class ExperienceCreateRequestDto {
 
     private List<LinkRequest> links = new ArrayList<>();
 
+    private boolean forceCreate = false;
+
     @Getter
     @NoArgsConstructor
     public static class LinkRequest {

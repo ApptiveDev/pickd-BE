@@ -1,6 +1,8 @@
 package back.pickd.user.controller;
 
 import back.pickd.user.dto.ExperienceTempResponse;
+import back.pickd.user.dto.ExperienceStep2Response;
+import back.pickd.user.dto.ExperienceStep2SaveResult;
 import back.pickd.user.dto.UserExperienceResponse;
 import back.pickd.user.service.ExperienceExtractionService;
 import lombok.RequiredArgsConstructor;
@@ -34,16 +36,17 @@ public class ExperienceExtractionController {
 
 
     @PostMapping("/step2")
-    public ResponseEntity<List<UserExperienceResponse>> extractStep2(
+    public ResponseEntity<ExperienceStep2Response> extractStep2(
             Authentication authentication,
             @RequestBody Map<String, List<Long>> request) {
 
         List<Long> selectedTempIds = request.get("selectedTempIds");
-        List<UserExperienceResponse> result = extractionService.extractStep2(authentication.getName(), selectedTempIds)
+        ExperienceStep2SaveResult result = extractionService.extractStep2(authentication.getName(), selectedTempIds);
+        List<UserExperienceResponse> savedExperiences = result.getSavedExperiences()
                 .stream()
                 .map(UserExperienceResponse::new)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(result);
+        return ResponseEntity.ok(new ExperienceStep2Response(savedExperiences, result.getMergeCandidates()));
     }
 
 }
