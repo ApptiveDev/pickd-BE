@@ -42,6 +42,17 @@ spring:
   main:
     allow-bean-definition-overriding: true
 
+  # AWS 및 S3 설정
+  cloud:
+    aws:
+      credentials:
+        access-key: ${AWS_ACCESS_KEY_ID:dummy-access-key}
+        secret-key: ${AWS_SECRET_ACCESS_KEY:dummy-secret-key}
+      region:
+        static: ap-northeast-2
+      s3:
+        bucket: ${AWS_S3_BUCKET:pickd-file-bucket}
+
 server:
   port: 8080
 
@@ -54,3 +65,13 @@ gemini:
   api:
     key: ${gemini.api.key}
     url: https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent
+
+ai-server:
+  url: http://localhost:8000
+
+# CloudFront CDN 도메인 설정 (유저 다운로드 초고속용)
+aws:
+  cloudfront:
+    domain: ${AWS_CLOUDFRONT_DOMAIN:https://cdn.pickd.co.kr}
+
+
