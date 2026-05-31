@@ -7,7 +7,7 @@ import lombok.*;
 @Entity
 @Table(name = "experience_links")
 @Getter
-@Setter
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -39,5 +39,8 @@ public class ExperienceLink {
         if (this.id == null) {
             this.id = java.util.UUID.randomUUID().toString();
         }
+    }
+    public void setUserExperience(UserExperience userExperience) {
+        this.userExperience = userExperience;
     }
 }

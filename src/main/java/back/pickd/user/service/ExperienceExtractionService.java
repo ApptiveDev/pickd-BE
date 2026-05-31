@@ -31,12 +31,14 @@ public class ExperienceExtractionService {
     private final S3Service s3Service;
     private final ExperienceTempRepository tempRepository;
     private final UserExperienceRepository experienceRepository;
+    private final UserService userService;
 
     /**
      * 1차 경험 후보 추출 및 임시 캐싱
      */
     @Transactional
-    public List<ExperienceTemp> extractStep1(User user, MultipartFile file) {
+    public List<ExperienceTemp> extractStep1(String email, MultipartFile file) {
+        User user = userService.findByEmail(email);
         // 1. 자소서 원본을 S3 temp/resume 디렉터리에 임시 저장 (CloudFront URL 획득)
         String resumeUrl = s3Service.uploadFile(file, FileUploadType.TEMP_RESUME, user.getId());
 
@@ -68,11 +70,12 @@ public class ExperienceExtractionService {
      * 2차 선택형 정밀 분석 및 UserExperience 최종 영구 저장
      */
     @Transactional
-    public List<UserExperience> extractStep2(User user, List<Long> selectedTempIds) {
+    public List<UserExperience> extractStep2(String email, List<Long> selectedTempIds) {
         if (selectedTempIds == null || selectedTempIds.isEmpty()) {
             throw new IllegalArgumentException("선택된 임시 경험 ID가 없습니다.");
         }
 
+        User user = userService.findByEmail(email);
         // 1. 선택한 임시 경험 데이터들을 DB에서 로드
         List<ExperienceTemp> temps = tempRepository.findAllById(selectedTempIds);
         if (temps.isEmpty()) {
