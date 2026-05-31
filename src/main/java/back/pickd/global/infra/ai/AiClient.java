@@ -2,6 +2,7 @@ package back.pickd.global.infra.ai;
 
 import back.pickd.global.infra.ai.dto.AiStep1Response;
 import back.pickd.global.infra.ai.dto.AiStep2Response;
+import back.pickd.global.infra.ai.dto.AiJobPostingResponse;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -94,5 +95,26 @@ public class AiClient {
                 .body(bodyBuilder.build())
                 .retrieve()
                 .body(AiStep2Response.class);
+    }
+
+    public AiJobPostingResponse analyzeNoticeUrl(String url) {
+        return restClient.post()
+                .uri("/api/v1/analyze/url")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(java.util.Map.of("url", url))
+                .retrieve()
+                .body(AiJobPostingResponse.class);
+    }
+
+    public AiJobPostingResponse analyzeNoticePdf(MultipartFile file) {
+        MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
+        bodyBuilder.part("file", file.getResource());
+
+        return restClient.post()
+                .uri("/api/v1/analyze/pdf")
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(bodyBuilder.build())
+                .retrieve()
+                .body(AiJobPostingResponse.class);
     }
 }
