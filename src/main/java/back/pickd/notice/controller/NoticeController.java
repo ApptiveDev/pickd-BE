@@ -1,6 +1,8 @@
 package back.pickd.notice.controller;
 
+import back.pickd.notice.dto.UrlAnalysisRequestDto;
 import back.pickd.notice.service.NoticeService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -21,12 +23,8 @@ public class NoticeController {
     @PostMapping("/analyze/url")
     public ResponseEntity<Map<String, Long>> analyzeNoticeUrl(
             Authentication authentication,
-            @RequestBody Map<String, String> request) {
-        String url = request.get("url");
-        if (url == null || url.isBlank()) {
-            throw new IllegalArgumentException("URL is required");
-        }
-        Long noticeId = noticeService.analyzeAndSaveNoticeUrl(authentication.getName(), url);
+            @RequestBody @Valid UrlAnalysisRequestDto request) {
+        Long noticeId = noticeService.analyzeAndSaveNoticeUrl(authentication.getName(), request.getUrl());
         return ResponseEntity.ok(Map.of("noticeId", noticeId));
     }
 
@@ -35,9 +33,6 @@ public class NoticeController {
     public ResponseEntity<Map<String, Long>> analyzeNoticePdf(
             Authentication authentication,
             @RequestParam("file") MultipartFile file) {
-        if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("File is required");
-        }
         Long noticeId = noticeService.analyzeAndSaveNoticePdf(authentication.getName(), file);
         return ResponseEntity.ok(Map.of("noticeId", noticeId));
     }
