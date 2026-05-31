@@ -17,7 +17,6 @@ import java.util.Map;
 @Entity
 @Table(name = "user_experiences")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder

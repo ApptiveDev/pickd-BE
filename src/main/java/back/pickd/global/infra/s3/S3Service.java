@@ -54,6 +54,11 @@ public class S3Service {
             throw new RuntimeException("파일 업로드 중 오류가 발생했습니다.", e);
         }
 
+        // TEMP_RESUME 타입의 경우 AI 서버 접근용으로 60분짜리 Presigned URL 발급
+        if (uploadType == FileUploadType.TEMP_RESUME) {
+            return s3Template.createSignedGetURL(bucket, s3Key, java.time.Duration.ofMinutes(60)).toString();
+        }
+
         // S3 Direct URL 대신 CloudFront URL을 조합하여 반환
         return combineCloudFrontUrl(s3Key);
     }

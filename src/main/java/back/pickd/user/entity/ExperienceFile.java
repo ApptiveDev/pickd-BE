@@ -6,7 +6,6 @@ import lombok.*;
 @Entity
 @Table(name = "experience_files")
 @Getter
-@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -16,6 +15,7 @@ public class ExperienceFile {
     @Column(length = 36)
     private String id;
 
+    @com.fasterxml.jackson.annotation.JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "experience_id", nullable = false)
     private UserExperience userExperience;
@@ -40,5 +40,9 @@ public class ExperienceFile {
         if (this.id == null) {
             this.id = java.util.UUID.randomUUID().toString();
         }
+    }
+
+    public void setUserExperience(UserExperience userExperience) {
+        this.userExperience = userExperience;
     }
 }
