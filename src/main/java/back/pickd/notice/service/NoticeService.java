@@ -50,6 +50,9 @@ public class NoticeService {
     // PDF 채용공고 분석 후 저장
     @Transactional
     public Long analyzeAndSaveNoticePdf(String email, MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("PDF 파일은 필수입니다.");
+        }
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
         AiJobPostingResponse aiResponse = aiClient.analyzeNoticePdf(file);
