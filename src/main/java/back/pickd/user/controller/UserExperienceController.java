@@ -3,6 +3,8 @@ package back.pickd.user.controller;
 import back.pickd.user.dto.ExperienceCreateRequestDto;
 import back.pickd.user.dto.ExperienceCreateResponseDto;
 import back.pickd.user.dto.UserExperienceResponse;
+import back.pickd.user.entity.enums.ExperienceGroup;
+import back.pickd.user.entity.enums.ExperienceType;
 import back.pickd.user.service.UserExperienceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -38,11 +40,13 @@ public class UserExperienceController {
                 userExperienceService.getExperience(authentication.getName(), id));
     }
 
-    // 경험 목록 조회
+    // 경험 목록 조회 (필터링 적용)
     @GetMapping
     public ResponseEntity<List<UserExperienceResponse>> getExperiences(
-            Authentication authentication) {
+            Authentication authentication,
+            @RequestParam(required = false) ExperienceType type,
+            @RequestParam(required = false) ExperienceGroup group) {
         return ResponseEntity.ok(
-                userExperienceService.getExperiences(authentication.getName()));
+                userExperienceService.getExperiences(authentication.getName(), type, group));
     }
 }

@@ -2,9 +2,12 @@ package back.pickd.user.repository;
 
 import back.pickd.user.entity.User;
 import back.pickd.user.entity.UserExperience;
+import back.pickd.user.entity.enums.ExperienceGroup;
+import back.pickd.user.entity.enums.ExperienceType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -22,4 +25,15 @@ public interface UserExperienceRepository extends JpaRepository<UserExperience, 
 
     // 유저의 특정 경험 단일 조회
     Optional<UserExperience> findByIdAndUser(String id, User user);
+
+    // 필터링 적용된 경험 목록 조회
+    @Query("select e from UserExperience e where e.user = :user " +
+           "and (:type is null or e.experienceType = :type) " +
+           "and (:group is null or e.experienceGroup = :group) " +
+           "order by e.createdAt desc")
+    List<UserExperience> findByUserWithFilters(
+        @Param("user") User user,
+        @Param("type") ExperienceType type,
+        @Param("group") ExperienceGroup group
+    );
 }

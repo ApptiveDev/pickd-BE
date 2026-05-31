@@ -8,6 +8,8 @@ import back.pickd.user.entity.User;
 import back.pickd.user.entity.UserExperience;
 import back.pickd.user.repository.UserExperienceRepository;
 import back.pickd.user.repository.UserRepository;
+import back.pickd.user.entity.enums.ExperienceGroup;
+import back.pickd.user.entity.enums.ExperienceType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -66,11 +68,11 @@ public class UserExperienceService {
         return new UserExperienceResponse(experience);
     }
 
-    // 경험 목록 조회
-    public List<UserExperienceResponse> getExperiences(String email) {
+    // 경험 목록 조회 (필터링 적용)
+    public List<UserExperienceResponse> getExperiences(String email, ExperienceType type, ExperienceGroup group) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        return userExperienceRepository.findByUserOrderByCreatedAtDesc(user)
+        return userExperienceRepository.findByUserWithFilters(user, type, group)
                 .stream()
                 .map(UserExperienceResponse::new)
                 .collect(Collectors.toList());
