@@ -76,7 +76,6 @@ public class ExperienceExtractionService {
         }
 
         User user = userService.findByEmail(email);
-
         // 1. 선택한 임시 경험 데이터들을 DB에서 로드
         List<ExperienceTemp> temps = tempRepository.findAllById(selectedTempIds);
         if (temps.isEmpty()) {

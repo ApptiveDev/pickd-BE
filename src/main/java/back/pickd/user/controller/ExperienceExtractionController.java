@@ -32,6 +32,7 @@ public class ExperienceExtractionController {
         return ResponseEntity.ok(result);
     }
 
+
     @PostMapping("/step2")
     public ResponseEntity<List<UserExperienceResponse>> extractStep2(
             Authentication authentication,
@@ -44,4 +45,5 @@ public class ExperienceExtractionController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(result);
     }
+
 }

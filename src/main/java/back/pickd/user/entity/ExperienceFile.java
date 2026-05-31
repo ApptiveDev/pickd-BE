@@ -6,6 +6,7 @@ import lombok.*;
 @Entity
 @Table(name = "experience_files")
 @Getter
+
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
@@ -41,7 +42,6 @@ public class ExperienceFile {
             this.id = java.util.UUID.randomUUID().toString();
         }
     }
-
     public void setUserExperience(UserExperience userExperience) {
         this.userExperience = userExperience;
     }
