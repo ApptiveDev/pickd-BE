@@ -6,6 +6,7 @@ import back.pickd.user.dto.UserExperienceResponse;
 import back.pickd.user.entity.ExperienceLink;
 import back.pickd.user.entity.User;
 import back.pickd.user.entity.UserExperience;
+import back.pickd.user.exception.ExperienceMergeConflictException;
 import back.pickd.user.repository.UserExperienceRepository;
 import back.pickd.user.repository.UserRepository;
 import back.pickd.user.entity.enums.ExperienceGroup;
@@ -25,12 +26,20 @@ public class UserExperienceService {
 
     private final UserExperienceRepository userExperienceRepository;
     private final UserRepository userRepository;
+    private final ExperienceMergeService experienceMergeService;
 
     // 경험 수기 생성
     @Transactional
     public ExperienceCreateResponseDto createExperience(String email, ExperienceCreateRequestDto request) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        if (!request.isForceCreate()) {
+            experienceMergeService.findCreateMergeCandidate(user, request)
+                    .ifPresent(conflict -> {
+                        throw new ExperienceMergeConflictException(conflict);
+                    });
+        }
 
         UserExperience experience = UserExperience.builder()
                 .user(user)

@@ -13,10 +13,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// 사용자 경험 수기 입력 요청 DTO
 @Getter
 @NoArgsConstructor
-public class ExperienceCreateRequestDto {
+public class ExperienceDraftRequest {
 
     @NotBlank(message = "경험 제목은 필수입니다.")
     private String title;
@@ -27,25 +26,11 @@ public class ExperienceCreateRequestDto {
     @NotNull(message = "경험 그룹은 필수입니다.")
     private ExperienceGroup experienceGroup;
 
-    @NotNull(message = "상태는 필수입니다.")
-    private Status status;
+    private Status status = Status.COMPLETED;
 
     private String documentContent;
 
     private Map<String, Object> attributes = new HashMap<>();
 
     private List<String> keywords = new ArrayList<>();
-
-    private List<LinkRequest> links = new ArrayList<>();
-
-    private boolean forceCreate = false;
-
-    @Getter
-    @NoArgsConstructor
-    public static class LinkRequest {
-        private String title;
-        private String url;
-        private String materialType;
-        private Integer documentPosition;
-    }
 }
