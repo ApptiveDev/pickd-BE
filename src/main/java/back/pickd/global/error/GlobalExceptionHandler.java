@@ -1,5 +1,7 @@
 package back.pickd.global.error;
 
+import back.pickd.user.dto.ExperienceMergeConflictResponse;
+import back.pickd.user.exception.ExperienceMergeConflictException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -29,6 +31,11 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleGoogleApiException(Exception e, HttpServletRequest request) {
         log.error("Google API Exception: {}", e.getMessage(), e);
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "구글 API 연동 중 오류가 발생했습니다.", request);
+    }
+
+    @ExceptionHandler(ExperienceMergeConflictException.class)
+    public ResponseEntity<ExperienceMergeConflictResponse> handleExperienceMergeConflict(ExperienceMergeConflictException e) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getResponse());
     }
 
     @ExceptionHandler({OAuth2AuthenticationException.class, RuntimeException.class})

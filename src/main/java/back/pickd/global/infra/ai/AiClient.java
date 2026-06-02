@@ -1,5 +1,7 @@
 package back.pickd.global.infra.ai;
 
+import back.pickd.global.infra.ai.dto.AiExperienceMergeCheckRequest;
+import back.pickd.global.infra.ai.dto.AiExperienceMergeCheckResponse;
 import back.pickd.global.infra.ai.dto.AiStep1Response;
 import back.pickd.global.infra.ai.dto.AiStep2Response;
 import back.pickd.global.infra.ai.dto.AiJobPostingResponse;
@@ -78,12 +80,27 @@ public class AiClient {
      * AI 2차 정밀 경험 추출 (step2) - S3 CloudFront URL 기반 호출
      */
     public AiStep2Response extractStep2ByUrl(String resumeUrl, List<AiStep1Response.ExperienceSummaryDto> selectedExperiences) {
+        return extractStep2ByUrl(resumeUrl, selectedExperiences, List.of());
+    }
+
+    /**
+     * AI 2차 정밀 경험 추출 (step2) - 기존 경험 기반 병합 후보 검사 포함
+     */
+    public AiStep2Response extractStep2ByUrl(
+            String resumeUrl,
+            List<AiStep1Response.ExperienceSummaryDto> selectedExperiences,
+            List<AiExperienceMergeCheckRequest.ExperiencePayload> existingExperiences
+    ) {
         MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
         bodyBuilder.part("url", resumeUrl);
 
         try {
             String jsonList = objectMapper.writeValueAsString(selectedExperiences);
             bodyBuilder.part("selected_experiences", jsonList);
+            if (existingExperiences != null && !existingExperiences.isEmpty()) {
+                String existingExperienceJson = objectMapper.writeValueAsString(existingExperiences);
+                bodyBuilder.part("existing_experiences", existingExperienceJson);
+            }
         } catch (JsonProcessingException e) {
             log.error("Failed to serialize selected experiences for AI Step2", e);
             throw new RuntimeException("AI 분석 요청 중 직렬화 오류가 발생했습니다.", e);
@@ -95,6 +112,15 @@ public class AiClient {
                 .body(bodyBuilder.build())
                 .retrieve()
                 .body(AiStep2Response.class);
+    }
+
+    public AiExperienceMergeCheckResponse checkExperienceMerge(AiExperienceMergeCheckRequest request) {
+        return restClient.post()
+                .uri("/api/v1/experiences/merge-check")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(request)
+                .retrieve()
+                .body(AiExperienceMergeCheckResponse.class);
     }
 
     public AiJobPostingResponse analyzeNoticeUrl(String url) {

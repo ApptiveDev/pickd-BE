@@ -34,6 +34,7 @@ public class AiStep2Response {
         private List<String> ai_questions;
         private List<String> ai_sentence_cards;
         private String merge_candidate_id;
+        private Double merge_similarity;
         private String writing_status;
     }
 
