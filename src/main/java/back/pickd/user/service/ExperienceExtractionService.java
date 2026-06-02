@@ -7,7 +7,11 @@ import back.pickd.global.infra.ai.dto.AiStep2Response;
 import back.pickd.global.infra.s3.FileUploadType;
 import back.pickd.global.infra.s3.S3Service;
 import back.pickd.user.dto.ExperienceMergeConflictResponse;
+import back.pickd.user.dto.ExperienceStep3Action;
+import back.pickd.user.dto.ExperienceStep3Request;
 import back.pickd.user.dto.ExperienceStep2SaveResult;
+import back.pickd.user.dto.ExperienceStep3Response;
+import back.pickd.user.dto.UserExperienceResponse;
 import back.pickd.user.entity.*;
 import back.pickd.user.entity.enums.ExperienceGroup;
 import back.pickd.user.entity.enums.ExperienceType;
@@ -149,6 +153,39 @@ public class ExperienceExtractionService {
         tempRepository.deleteByUser(user);
 
         return new ExperienceStep2SaveResult(savedExperiences, mergeCandidates);
+    }
+
+    /**
+     * 2차 추출에서 중복 후보로 보류된 draft 경험을 사용자 결정에 따라 후처리합니다.
+     */
+    @Transactional
+    public ExperienceStep3Response confirmStep3(String email, ExperienceStep3Request request) {
+        User user = userService.findByEmail(email);
+
+        List<UserExperienceResponse> savedExperiences = new ArrayList<>();
+        int skippedCount = 0;
+
+        for (ExperienceStep3Request.Decision decision : request.getDecisions()) {
+            if (decision.getAction() == ExperienceStep3Action.SKIP) {
+                skippedCount++;
+                continue;
+            }
+
+            UserExperience experience = UserExperience.builder()
+                    .user(user)
+                    .title(decision.getDraft().getTitle())
+                    .experienceGroup(decision.getDraft().getExperienceGroup())
+                    .experienceType(decision.getDraft().getExperienceType())
+                    .status(decision.getDraft().getStatus() != null ? decision.getDraft().getStatus() : Status.COMPLETED)
+                    .documentContent(decision.getDraft().getDocumentContent())
+                    .attributes(decision.getDraft().getAttributes() != null ? decision.getDraft().getAttributes() : new HashMap<>())
+                    .keywords(decision.getDraft().getKeywords() != null ? decision.getDraft().getKeywords() : new ArrayList<>())
+                    .build();
+
+            savedExperiences.add(new UserExperienceResponse(experienceRepository.save(experience)));
+        }
+
+        return new ExperienceStep3Response(savedExperiences, skippedCount);
     }
 
     private ExperienceGroup convertGroup(String koreanGroup) {

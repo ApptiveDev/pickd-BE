@@ -1,9 +1,12 @@
 package back.pickd.user.controller;
 
 import back.pickd.user.dto.ExperienceTempResponse;
+import back.pickd.user.dto.ExperienceStep3Request;
+import back.pickd.user.dto.ExperienceStep3Response;
 import back.pickd.user.dto.ExperienceStep2Response;
 import back.pickd.user.dto.ExperienceStep2SaveResult;
 import back.pickd.user.dto.UserExperienceResponse;
+import jakarta.validation.Valid;
 import back.pickd.user.service.ExperienceExtractionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -47,6 +50,14 @@ public class ExperienceExtractionController {
                 .map(UserExperienceResponse::new)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(new ExperienceStep2Response(savedExperiences, result.getMergeCandidates()));
+    }
+
+    @PostMapping("/step3")
+    public ResponseEntity<ExperienceStep3Response> confirmStep3(
+            Authentication authentication,
+            @RequestBody @Valid ExperienceStep3Request request) {
+
+        return ResponseEntity.ok(extractionService.confirmStep3(authentication.getName(), request));
     }
 
 }
