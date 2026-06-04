@@ -1,5 +1,6 @@
 package back.pickd.user.service;
 
+import back.pickd.global.error.ApiException;
 import back.pickd.global.infra.ai.AiClient;
 import back.pickd.global.infra.ai.dto.AiExperienceMergeCheckRequest;
 import back.pickd.global.infra.ai.dto.AiExperienceMergeCheckResponse;
@@ -63,7 +64,7 @@ public class ExperienceMergeService {
                 ExperienceDraftResponse.fromCreateRequest(request)
         );
         if (conflict.isEmpty()) {
-            throw new RuntimeException("AI 병합 후보를 사용자 경험에서 찾을 수 없습니다.");
+            throw ApiException.badGateway("AI 병합 후보를 사용자 경험에서 찾을 수 없습니다.");
         }
         return conflict;
     }
@@ -85,7 +86,7 @@ public class ExperienceMergeService {
                 ExperienceDraftResponse.fromStep2(dto, type, group, Status.COMPLETED)
         );
         if (conflict.isEmpty()) {
-            throw new RuntimeException("AI 병합 후보를 사용자 경험에서 찾을 수 없습니다.");
+            throw ApiException.badGateway("AI 병합 후보를 사용자 경험에서 찾을 수 없습니다.");
         }
         return conflict;
     }
@@ -101,7 +102,7 @@ public class ExperienceMergeService {
                 .build();
         AiExperienceMergeCheckResponse response = aiClient.checkExperienceMerge(request);
         if (response == null || response.getResults() == null || response.getResults().isEmpty()) {
-            throw new RuntimeException("AI 병합 검사 응답이 없습니다.");
+            throw ApiException.badGateway("AI 병합 검사 응답이 없습니다.");
         }
         return response.getResults().get(0);
     }

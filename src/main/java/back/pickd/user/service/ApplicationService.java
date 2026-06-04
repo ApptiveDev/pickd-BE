@@ -1,5 +1,6 @@
 package back.pickd.user.service;
 
+import back.pickd.global.error.ApiException;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
 import com.google.api.client.util.DateTime;
@@ -70,7 +71,8 @@ public class ApplicationService {
 
     @Transactional
     public void deleteApplication(Long id, Authentication auth) throws Exception {
-        Application app = applicationRepository.findById(id).orElseThrow();
+        Application app = applicationRepository.findById(id)
+                .orElseThrow(() -> ApiException.notFound("지원 현황을 찾을 수 없습니다. id: " + id));
 
         if (app.getApplyEventId() != null) {
             calendarService.deleteEvent(auth, app.getApplyEventId());
@@ -83,7 +85,8 @@ public class ApplicationService {
 
     @Transactional
     public void updateApplication(Long id, ApplicationRequest dto, Authentication auth) throws Exception {
-        Application app = applicationRepository.findById(id).orElseThrow();
+        Application app = applicationRepository.findById(id)
+                .orElseThrow(() -> ApiException.notFound("지원 현황을 찾을 수 없습니다. id: " + id));
 
         app.setCompany(dto.getCompany());
         app.setJobTitle(dto.getJobTitle());

@@ -1,5 +1,6 @@
 package back.pickd.global.infra.ai;
 
+import back.pickd.global.error.ApiException;
 import back.pickd.global.infra.ai.dto.AiExperienceMergeCheckRequest;
 import back.pickd.global.infra.ai.dto.AiExperienceMergeCheckResponse;
 import back.pickd.global.infra.ai.dto.AiStep1Response;
@@ -65,7 +66,7 @@ public class AiClient {
             bodyBuilder.part("selected_experiences", jsonList);
         } catch (JsonProcessingException e) {
             log.error("Failed to serialize selected experiences for AI Step2", e);
-            throw new RuntimeException("AI 분석 요청 중 직렬화 오류가 발생했습니다.", e);
+            throw ApiException.internalServerError("AI 분석 요청 생성 중 오류가 발생했습니다.", e);
         }
 
         return restClient.post()
@@ -103,7 +104,7 @@ public class AiClient {
             }
         } catch (JsonProcessingException e) {
             log.error("Failed to serialize selected experiences for AI Step2", e);
-            throw new RuntimeException("AI 분석 요청 중 직렬화 오류가 발생했습니다.", e);
+            throw ApiException.internalServerError("AI 분석 요청 생성 중 오류가 발생했습니다.", e);
         }
 
         return restClient.post()

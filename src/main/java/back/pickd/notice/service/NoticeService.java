@@ -1,5 +1,6 @@
 package back.pickd.notice.service;
 
+import back.pickd.global.error.ApiException;
 import back.pickd.global.infra.ai.AiClient;
 import back.pickd.global.infra.ai.dto.*;
 import back.pickd.notice.enums.EmploymentType;
@@ -42,7 +43,7 @@ public class NoticeService {
     @Transactional
     public Long analyzeAndSaveNoticeUrl(String email, String url) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> ApiException.notFound("사용자를 찾을 수 없습니다."));
         AiJobPostingResponse aiResponse = aiClient.analyzeNoticeUrl(url);
         return saveNotice(user, aiResponse, url);
     }
@@ -51,10 +52,10 @@ public class NoticeService {
     @Transactional
     public Long analyzeAndSaveNoticePdf(String email, MultipartFile file) {
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("PDF 파일은 필수입니다.");
+            throw ApiException.badRequest("PDF 파일은 필수입니다.");
         }
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+                .orElseThrow(() -> ApiException.notFound("사용자를 찾을 수 없습니다."));
         AiJobPostingResponse aiResponse = aiClient.analyzeNoticePdf(file);
         return saveNotice(user, aiResponse, null);
     }

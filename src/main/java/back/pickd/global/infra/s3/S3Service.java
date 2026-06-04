@@ -1,5 +1,6 @@
 package back.pickd.global.infra.s3;
 
+import back.pickd.global.error.ApiException;
 import io.awspring.cloud.s3.S3Template;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,7 +35,7 @@ public class S3Service {
      */
     public String uploadFile(MultipartFile file, FileUploadType uploadType, Long userId) {
         if (file == null || file.isEmpty()) {
-            throw new IllegalArgumentException("업로드할 파일이 비어있습니다.");
+            throw ApiException.badRequest("업로드할 파일이 비어있습니다.");
         }
 
         String originalFilename = file.getOriginalFilename();
@@ -51,7 +52,7 @@ public class S3Service {
             log.info("Successfully uploaded file to S3: bucket={}, key={}", bucket, s3Key);
         } catch (IOException e) {
             log.error("Failed to upload file to S3", e);
-            throw new RuntimeException("파일 업로드 중 오류가 발생했습니다.", e);
+            throw ApiException.badGateway("파일 업로드 중 오류가 발생했습니다.", e);
         }
 
         // TEMP_RESUME 타입의 경우 AI 서버 접근용으로 60분짜리 Presigned URL 발급

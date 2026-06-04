@@ -1,5 +1,6 @@
 package back.pickd.user.service;
 
+import back.pickd.global.error.ApiException;
 import back.pickd.global.infra.ai.AiClient;
 import back.pickd.global.infra.ai.dto.AiExperienceMergeCheckRequest;
 import back.pickd.global.infra.ai.dto.AiStep1Response;
@@ -80,14 +81,14 @@ public class ExperienceExtractionService {
     @Transactional
     public ExperienceStep2SaveResult extractStep2(String email, List<Long> selectedTempIds) {
         if (selectedTempIds == null || selectedTempIds.isEmpty()) {
-            throw new IllegalArgumentException("선택된 임시 경험 ID가 없습니다.");
+            throw ApiException.badRequest("선택된 임시 경험 ID가 없습니다.");
         }
 
         User user = userService.findByEmail(email);
         // 1. 선택한 임시 경험 데이터들을 DB에서 로드
         List<ExperienceTemp> temps = tempRepository.findAllById(selectedTempIds);
         if (temps.isEmpty()) {
-            throw new IllegalArgumentException("요청한 임시 경험 데이터를 찾을 수 없습니다.");
+            throw ApiException.notFound("요청한 임시 경험 데이터를 찾을 수 없습니다.");
         }
 
         // 자소서 URL 추출 (모두 같은 파일이므로 첫 번째 아이템에서 획득)

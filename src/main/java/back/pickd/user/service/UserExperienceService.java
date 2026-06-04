@@ -1,5 +1,6 @@
 package back.pickd.user.service;
 
+import back.pickd.global.error.ApiException;
 import back.pickd.user.dto.ExperienceCreateRequestDto;
 import back.pickd.user.dto.ExperienceCreateResponseDto;
 import back.pickd.user.dto.UserExperienceResponse;
@@ -32,7 +33,7 @@ public class UserExperienceService {
     @Transactional
     public ExperienceCreateResponseDto createExperience(String email, ExperienceCreateRequestDto request) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> ApiException.notFound("사용자를 찾을 수 없습니다."));
 
         if (!request.isForceCreate()) {
             experienceMergeService.findCreateMergeCandidate(user, request)
@@ -71,16 +72,16 @@ public class UserExperienceService {
     // 경험 단일 조회
     public UserExperienceResponse getExperience(String email, String id) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> ApiException.notFound("사용자를 찾을 수 없습니다."));
         UserExperience experience = userExperienceRepository.findByIdAndUser(id, user)
-                .orElseThrow(() -> new IllegalArgumentException("경험을 찾을 수 없습니다."));
+                .orElseThrow(() -> ApiException.notFound("경험을 찾을 수 없습니다."));
         return new UserExperienceResponse(experience);
     }
 
     // 경험 목록 조회 (필터링 적용)
     public List<UserExperienceResponse> getExperiences(String email, ExperienceType type, ExperienceGroup group) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> ApiException.notFound("사용자를 찾을 수 없습니다."));
         return userExperienceRepository.findByUserWithFilters(user, type, group)
                 .stream()
                 .map(UserExperienceResponse::new)

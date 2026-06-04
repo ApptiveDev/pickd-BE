@@ -1,5 +1,6 @@
 package back.pickd.user.service;
 
+import back.pickd.global.error.ApiException;
 import back.pickd.user.dto.onboarding.OnboardingRequest;
 import back.pickd.user.entity.*;
 import back.pickd.user.entity.enums.*;
@@ -24,7 +25,8 @@ public class OnboardingService {
 
     @Transactional
     public User updateOnboarding(String email, OnboardingRequest dto) {
-        User user = userRepository.findByEmail(email).orElseThrow();
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> ApiException.notFound("사용자를 찾을 수 없습니다."));
 
         if (dto.getServiceAgreed() != null) {
             user.updateTerms(dto.getServiceAgreed(), dto.getPrivacyAgreed(), dto.getMarketingAgreed(), dto.getPushAgreed());

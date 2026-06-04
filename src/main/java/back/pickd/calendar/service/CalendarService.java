@@ -1,5 +1,6 @@
 package back.pickd.calendar.service;
 
+import back.pickd.global.error.ApiException;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
@@ -28,12 +29,16 @@ public class CalendarService {
     private final OAuth2AuthorizedClientService authorizedClientService;
 
     private Calendar getCalendarClient(Authentication authentication) throws IOException, GeneralSecurityException {
-        if (authentication == null) throw new RuntimeException("로그인 필요");
+        if (authentication == null) {
+            throw ApiException.unauthorized("로그인이 필요합니다.");
+        }
 
         OAuth2AuthorizedClient client =
                 authorizedClientService.loadAuthorizedClient("google", authentication.getName());
 
-        if (client == null) throw new RuntimeException("구글 연동 필요");
+        if (client == null) {
+            throw ApiException.unauthorized("구글 캘린더 연동을 위해 다시 로그인해 주세요.");
+        }
 
         String token = client.getAccessToken().getTokenValue();
         GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(token, null));
