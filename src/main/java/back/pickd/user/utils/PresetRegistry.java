@@ -5,7 +5,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 @Component
-public class PresetRegistry {
+public class PresetRegistry { // 왜 사용되지 않는지 알아보기, 각필드를 어떻게 저장하고 있는지를, 핕터링
 
     private static final Map<ExperienceType, List<String>> PRESET_MAP = new EnumMap<>(ExperienceType.class);
 
@@ -17,12 +17,14 @@ public class PresetRegistry {
         PRESET_MAP.put(ExperienceType.CONTEST, List.of("공모전명", "주관기관", "참가 기간", "역할", "수상/결과"));
         PRESET_MAP.put(ExperienceType.VOLUNTEER, List.of("활동명", "기관/단체", "활동 기간", "역할"));
         PRESET_MAP.put(ExperienceType.EXCHANGE, List.of("국가/도시", "학교명", "파견 기간", "전공/수강 분야"));
+        // 알바
+        // 학부 연구생 추가
 
         // 스펙·증빙 (Spec) 프리셋 필드 정의
-        PRESET_MAP.put(ExperienceType.LANGUAGE, List.of("시험명", "점수/등급", "응시일", "유효기간", "성적표"));
-        PRESET_MAP.put(ExperienceType.LICENSE, List.of("자격증명", "발급기관", "취득일", "유효기간", "자격증 사본"));
+        PRESET_MAP.put(ExperienceType.LANGUAGE, List.of("시험명", "점수/등급", "응시일", "유효기간", "성적표")); // 수험 번호 추가
+        PRESET_MAP.put(ExperienceType.LICENSE, List.of("자격증명", "발급기관", "취득일", "유효기간", "자격증 사본")); // 자격 번호
         PRESET_MAP.put(ExperienceType.AWARD, List.of("수상명", "수여기관", "수상일", "수상 구분", "수상 증빙"));
-        PRESET_MAP.put(ExperienceType.COURSE, List.of("과목명", "이수 학기", "학점", "성적", "관련 분야"));
+        PRESET_MAP.put(ExperienceType.COURSE, List.of("과목명", "이수 학기", "학점", "성적", "관련 분야")); // 과목 설명
         PRESET_MAP.put(ExperienceType.EDUCATION, List.of("교육명", "운영기관", "교육 기간", "수료 여부", "수료증"));
     }
 
