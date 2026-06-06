@@ -3,10 +3,15 @@ package back.pickd.auth.config;
 import back.pickd.auth.jwt.JwtTokenProvider;
 import back.pickd.auth.oauth.OAuth2SuccessHandler;
 import back.pickd.auth.security.JwtAuthFilter;
+import back.pickd.global.error.ErrorResponse;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.MediaType;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -15,9 +20,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
+
+import java.io.IOException;
+import java.time.LocalDateTime;
 
 @Configuration
 @EnableWebSecurity
@@ -27,6 +34,7 @@ public class SecurityConfig {
     private final JwtTokenProvider jwtTokenProvider;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final OAuth2AuthorizedClientRepository authorizedClientRepository;
+    private final ObjectMapper objectMapper;
 
     @Bean
     public PasswordEncoder passwordEncoder() {
@@ -65,9 +73,12 @@ public class SecurityConfig {
 
             .exceptionHandling(exception -> exception
                 .defaultAuthenticationEntryPointFor(
-                    new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                    (request, response, authException) ->
+                            writeErrorResponse(response, HttpStatus.UNAUTHORIZED, "인증이 필요합니다.", request),
                     new AntPathRequestMatcher("/api/**")
                 )
+                .accessDeniedHandler((request, response, accessDeniedException) ->
+                        writeErrorResponse(response, HttpStatus.FORBIDDEN, "접근 권한이 없습니다.", request))
             )
 
             .oauth2Login(oauth2 -> oauth2
@@ -89,5 +100,21 @@ public class SecurityConfig {
             );
 
         return http.build();
+    }
+
+    private void writeErrorResponse(HttpServletResponse response, HttpStatus status, String message, HttpServletRequest request)
+            throws IOException {
+        ErrorResponse errorResponse = ErrorResponse.builder()
+                .timestamp(LocalDateTime.now())
+                .status(status.value())
+                .error(status.getReasonPhrase())
+                .message(message)
+                .path(request.getRequestURI())
+                .build();
+
+        response.setStatus(status.value());
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding("UTF-8");
+        objectMapper.writeValue(response.getWriter(), errorResponse);
     }
 }

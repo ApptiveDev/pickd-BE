@@ -13,15 +13,15 @@ public class ErrorResponse {
     @Schema(description = "에러 발생 시각", example = "2026-06-03T15:43:33.594")
     private final LocalDateTime timestamp;
 
-    @Schema(description = "HTTP 상태 코드", example = "400")
+    @Schema(description = "HTTP 상태 코드")
     private final int status;
 
-    @Schema(description = "HTTP 상태 메시지", example = "Bad Request")
+    @Schema(description = "HTTP 상태 메시지")
     private final String error;
 
-    @Schema(description = "에러 상세 메시지", example = "사용자를 찾을 수 없습니다.")
+    @Schema(description = "에러 상세 메시지")
     private final String message;
 
-    @Schema(description = "요청 경로", example = "/api/experiences")
+    @Schema(description = "요청 경로")
     private final String path;
 }
