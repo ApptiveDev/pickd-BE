@@ -47,3 +47,9 @@ tokens/
 
 # YAML Secret files
 application-local.yml
+
+# Agent 설정 파일
+AGENTS.md
+
+# docs 디렉토리 전체
+docs/
