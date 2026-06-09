@@ -2,31 +2,115 @@ package back.pickd.user.utils;
 
 import back.pickd.user.entity.enums.ExperienceType;
 import org.springframework.stereotype.Component;
+
 import java.util.*;
 
 @Component
 public class PresetRegistry {
 
-    private static final Map<ExperienceType, List<String>> PRESET_MAP = new EnumMap<>(ExperienceType.class);
+    public record PresetField(String key, String label) {
+    }
+
+    private static final Map<ExperienceType, List<PresetField>> PRESET_MAP =
+            new EnumMap<>(ExperienceType.class);
 
     static {
         // 상세 서술형 (Narrative) 프리셋 필드 정의
-        PRESET_MAP.put(ExperienceType.PROJECT, List.of("프로젝트명", "진행 기간", "역할", "소속/팀", "주요 성과"));
-        PRESET_MAP.put(ExperienceType.ACTIVITY, List.of("활동명", "주관기관", "활동 기간", "역할", "주요 성과"));
-        PRESET_MAP.put(ExperienceType.INTERN, List.of("회사/기관명", "직무/부서", "근무/참여 기간", "담당 업무", "주요 성과"));
-        PRESET_MAP.put(ExperienceType.CONTEST, List.of("공모전명", "주관기관", "참가 기간", "역할", "수상/결과"));
-        PRESET_MAP.put(ExperienceType.VOLUNTEER, List.of("활동명", "기관/단체", "활동 기간", "역할"));
-        PRESET_MAP.put(ExperienceType.EXCHANGE, List.of("국가/도시", "학교명", "파견 기간", "전공/수강 분야"));
+        PRESET_MAP.put(ExperienceType.PROJECT, List.of(
+                new PresetField("project_name", "프로젝트명"),
+                new PresetField("period", "진행 기간"),
+                new PresetField("role", "역할"),
+                new PresetField("organization", "소속/팀"),
+                new PresetField("achievements", "주요 성과")
+        ));
+        PRESET_MAP.put(ExperienceType.ACTIVITY, List.of(
+                new PresetField("activity_name", "활동명"),
+                new PresetField("organization", "주관기관"),
+                new PresetField("period", "활동 기간"),
+                new PresetField("role", "역할"),
+                new PresetField("achievements", "주요 성과")
+        ));
+        PRESET_MAP.put(ExperienceType.INTERN, List.of(
+                new PresetField("organization", "회사/기관명"),
+                new PresetField("department", "직무/부서"),
+                new PresetField("period", "근무/참여 기간"),
+                new PresetField("task", "담당 업무"),
+                new PresetField("achievements", "주요 성과")
+        ));
+        PRESET_MAP.put(ExperienceType.CONTEST, List.of(
+                new PresetField("competition_name", "공모전명"),
+                new PresetField("organization", "주관기관"),
+                new PresetField("period", "참가 기간"),
+                new PresetField("role", "역할"),
+                new PresetField("achievements", "수상/결과")
+        ));
+        PRESET_MAP.put(ExperienceType.VOLUNTEER, List.of(
+                new PresetField("activity_name", "활동명"),
+                new PresetField("organization", "기관/단체"),
+                new PresetField("period", "활동 기간"),
+                new PresetField("role", "역할")
+        ));
+        PRESET_MAP.put(ExperienceType.EXCHANGE, List.of(
+                new PresetField("location", "국가/도시"),
+                new PresetField("organization", "학교명"),
+                new PresetField("period", "파견 기간"),
+                new PresetField("major", "전공/수강 분야")
+        ));
+        PRESET_MAP.put(ExperienceType.ALBA, List.of(
+                new PresetField("workplace_name", "근무처명"),
+                new PresetField("period", "근무 기간"),
+                new PresetField("work_type", "업무 유형"),
+                new PresetField("task", "담당 업무"),
+                new PresetField("key_experience", "주요 경험")
+        ));
+        PRESET_MAP.put(ExperienceType.RESEARCH, List.of(
+                new PresetField("lab_name", "연구실명"),
+                new PresetField("organization", "소속 기관"),
+                new PresetField("period", "참여 기간"),
+                new PresetField("research_topic", "연구 주제"),
+                new PresetField("role", "담당 역할"),
+                new PresetField("deliverables", "주요 결과물")
+        ));
 
         // 스펙·증빙 (Spec) 프리셋 필드 정의
-        PRESET_MAP.put(ExperienceType.LANGUAGE, List.of("시험명", "점수/등급", "응시일", "유효기간", "성적표"));
-        PRESET_MAP.put(ExperienceType.LICENSE, List.of("자격증명", "발급기관", "취득일", "유효기간", "자격증 사본"));
-        PRESET_MAP.put(ExperienceType.AWARD, List.of("수상명", "수여기관", "수상일", "수상 구분", "수상 증빙"));
-        PRESET_MAP.put(ExperienceType.COURSE, List.of("과목명", "이수 학기", "학점", "성적", "관련 분야"));
-        PRESET_MAP.put(ExperienceType.EDUCATION, List.of("교육명", "운영기관", "교육 기간", "수료 여부", "수료증"));
+        PRESET_MAP.put(ExperienceType.LANGUAGE, List.of(
+                new PresetField("exam_name", "시험명"),
+                new PresetField("score", "점수/등급"),
+                new PresetField("exam_date", "응시일"),
+                new PresetField("expiration_date", "유효기간"),
+                new PresetField("score_report", "성적표")
+        ));
+        PRESET_MAP.put(ExperienceType.LICENSE, List.of(
+                new PresetField("certificate_name", "자격증명"),
+                new PresetField("organization", "발급기관"),
+                new PresetField("acquisition_date", "취득일"),
+                new PresetField("expiration_date", "유효기간"),
+                new PresetField("certificate_copy", "자격증 사본")
+        ));
+        PRESET_MAP.put(ExperienceType.AWARD, List.of(
+                new PresetField("award_name", "수상명"),
+                new PresetField("organization", "수여기관"),
+                new PresetField("award_date", "수상일"),
+                new PresetField("award_grade", "수상 구분"),
+                new PresetField("award_proof", "수상 증빙")
+        ));
+        PRESET_MAP.put(ExperienceType.COURSE, List.of(
+                new PresetField("course_name", "과목명"),
+                new PresetField("semester", "이수 학기"),
+                new PresetField("credit", "학점"),
+                new PresetField("grade", "성적"),
+                new PresetField("major", "관련 분야")
+        ));
+        PRESET_MAP.put(ExperienceType.EDUCATION, List.of(
+                new PresetField("education_name", "교육명"),
+                new PresetField("organization", "운영기관"),
+                new PresetField("period", "교육 기간"),
+                new PresetField("completion_status", "수료 여부"),
+                new PresetField("completion_certificate", "수료증")
+        ));
     }
 
-    public List<String> getPresetKeys(ExperienceType type) {
+    public List<PresetField> getPresetFields(ExperienceType type) {
         return PRESET_MAP.getOrDefault(type, Collections.emptyList());
     }
 
@@ -35,15 +119,37 @@ public class PresetRegistry {
      */
     public String normalizeKey(ExperienceType type, String rawKey) {
         if (rawKey == null) return null;
-        String cleanKey = rawKey.replace(" ", "").trim();
-        List<String> standardKeys = getPresetKeys(type);
+        String cleanKey = clean(rawKey);
 
-        for (String stdKey : standardKeys) {
-            String cleanStd = stdKey.replace(" ", "");
-            if (cleanStd.contains(cleanKey) || cleanKey.contains(cleanStd)) {
-                return stdKey; // 일치하는 표준 프리셋 필드가 감지되면 해당 표준 필드명 리턴
+        for (PresetField field : getPresetFields(type)) {
+            String cleanFieldKey = clean(field.key());
+            String cleanFieldLabel = clean(field.label());
+            if (cleanFieldKey.equals(cleanKey) || cleanFieldLabel.equals(cleanKey)) {
+                return field.key();
             }
         }
-        return rawKey; // 완전 새로운 커스텀 필드라면 그대로 유지시킴
+        return rawKey;
+    }
+
+    public Map<String, Object> normalizeAttributes(
+            ExperienceType type,
+            Map<String, Object> attributes
+    ) {
+        if (attributes == null || attributes.isEmpty()) {
+            return new LinkedHashMap<>();
+        }
+
+        Map<String, Object> normalizedAttributes = new LinkedHashMap<>();
+        attributes.forEach((key, value) ->
+                normalizedAttributes.put(normalizeKey(type, key), value)
+        );
+        return normalizedAttributes;
+    }
+
+    private String clean(String value) {
+        return value.replace(" ", "")
+                .replace("_", "")
+                .trim()
+                .toLowerCase(Locale.ROOT);
     }
 }
