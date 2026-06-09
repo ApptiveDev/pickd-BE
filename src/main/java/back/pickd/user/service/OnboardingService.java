@@ -108,13 +108,13 @@ public class OnboardingService {
                         + (e.getEndDate() != null ? e.getEndDate() : "");
                 
                 if (expType == ExperienceType.AWARD) {
-                    attributes.put("수상일", e.getEndDate());
+                    attributes.put("award_date", e.getEndDate());
                 } else if (expType == ExperienceType.INTERN) {
-                    attributes.put("근무/참여 기간", periodVal);
+                    attributes.put("period", periodVal);
                 } else if (expType == ExperienceType.ACTIVITY) {
-                    attributes.put("활동 기간", periodVal);
+                    attributes.put("period", periodVal);
                 } else {
-                    attributes.put("진행 기간", periodVal);
+                    attributes.put("period", periodVal);
                 }
 
                 experienceRepository.save(
