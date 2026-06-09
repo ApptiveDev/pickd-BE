@@ -18,6 +18,7 @@ import back.pickd.user.entity.enums.ExperienceType;
 import back.pickd.user.entity.enums.Status;
 import back.pickd.user.repository.ExperienceTempRepository;
 import back.pickd.user.repository.UserExperienceRepository;
+import back.pickd.user.utils.PresetRegistry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,6 +40,7 @@ public class ExperienceExtractionService {
     private final UserExperienceRepository experienceRepository;
     private final UserService userService;
     private final ExperienceMergeService experienceMergeService;
+    private final PresetRegistry presetRegistry;
 
     /**
      * 1차 경험 후보 추출 및 임시 캐싱
@@ -130,7 +131,7 @@ public class ExperienceExtractionService {
                         .experienceType(type)
                         .status(Status.COMPLETED)
                         .documentContent(dto.getExperience_content())
-                        .attributes(dto.getBasic_info() != null ? dto.getBasic_info() : new HashMap<>())
+                        .attributes(presetRegistry.normalizeAttributes(type, dto.getBasic_info()))
                         .keywords(dto.getKeywords() != null ? dto.getKeywords() : new ArrayList<>())
                         .build();
 
@@ -178,7 +179,10 @@ public class ExperienceExtractionService {
                     .experienceType(decision.getDraft().getExperienceType())
                     .status(decision.getDraft().getStatus() != null ? decision.getDraft().getStatus() : Status.COMPLETED)
                     .documentContent(decision.getDraft().getDocumentContent())
-                    .attributes(decision.getDraft().getAttributes() != null ? decision.getDraft().getAttributes() : new HashMap<>())
+                    .attributes(presetRegistry.normalizeAttributes(
+                            decision.getDraft().getExperienceType(),
+                            decision.getDraft().getAttributes()
+                    ))
                     .keywords(decision.getDraft().getKeywords() != null ? decision.getDraft().getKeywords() : new ArrayList<>())
                     .build();
 
