@@ -2,7 +2,7 @@ package back.pickd.notice.strategy;
 
 import back.pickd.notice.question.ApplicationQuestion;
 import back.pickd.user.entity.User;
-import back.pickd.user.entity.UserExperience;
+import back.pickd.experience.entity.UserExperience;
 import jakarta.persistence.*;
 import lombok.*;
 

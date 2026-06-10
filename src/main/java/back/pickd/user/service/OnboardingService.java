@@ -1,6 +1,11 @@
 package back.pickd.user.service;
 
 import back.pickd.user.dto.onboarding.OnboardingRequest;
+import back.pickd.experience.entity.UserExperience;
+import back.pickd.experience.enums.ExperienceGroup;
+import back.pickd.experience.enums.ExperienceType;
+import back.pickd.experience.enums.Status;
+import back.pickd.experience.repository.UserExperienceRepository;
 import back.pickd.user.entity.*;
 import back.pickd.user.entity.enums.*;
 import java.util.HashMap;
