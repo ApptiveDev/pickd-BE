@@ -11,6 +11,7 @@ import back.pickd.user.entity.enums.ExperienceType;
 import back.pickd.user.entity.enums.Status;
 import back.pickd.user.repository.ExperienceTempRepository;
 import back.pickd.user.repository.UserExperienceRepository;
+import back.pickd.user.utils.PresetRegistry;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -47,6 +48,9 @@ class ExperienceExtractionServiceTest {
 
     @Mock
     private ExperienceMergeService experienceMergeService;
+
+    @Mock
+    private PresetRegistry presetRegistry;
 
     @InjectMocks
     private ExperienceExtractionService experienceExtractionService;
@@ -96,6 +100,7 @@ class ExperienceExtractionServiceTest {
         ExperienceStep3Request request = objectMapper.readValue(requestJson, ExperienceStep3Request.class);
 
         when(userService.findByEmail("user@example.com")).thenReturn(user);
+        when(presetRegistry.normalizeAttributes(any(ExperienceType.class), any())).thenAnswer(invocation -> invocation.getArgument(1));
         when(experienceRepository.save(any(UserExperience.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         ExperienceStep3Response response = experienceExtractionService.confirmStep3("user@example.com", request);

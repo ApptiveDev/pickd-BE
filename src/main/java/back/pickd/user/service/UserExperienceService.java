@@ -11,6 +11,7 @@ import back.pickd.user.repository.UserExperienceRepository;
 import back.pickd.user.repository.UserRepository;
 import back.pickd.user.entity.enums.ExperienceGroup;
 import back.pickd.user.entity.enums.ExperienceType;
+import back.pickd.user.utils.PresetRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,7 @@ public class UserExperienceService {
     private final UserExperienceRepository userExperienceRepository;
     private final UserRepository userRepository;
     private final ExperienceMergeService experienceMergeService;
+    private final PresetRegistry presetRegistry;
 
     // 경험 수기 생성
     @Transactional
@@ -48,7 +50,10 @@ public class UserExperienceService {
                 .experienceGroup(request.getExperienceGroup())
                 .status(request.getStatus())
                 .documentContent(request.getDocumentContent())
-                .attributes(request.getAttributes())
+                .attributes(presetRegistry.normalizeAttributes(
+                        request.getExperienceType(),
+                        request.getAttributes()
+                ))
                 .keywords(request.getKeywords())
                 .build();
 
