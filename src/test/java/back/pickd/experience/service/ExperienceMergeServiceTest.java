@@ -1,13 +1,13 @@
-package back.pickd.user.service;
+package back.pickd.experience.service;
 
+import back.pickd.experience.entity.UserExperience;
+import back.pickd.experience.enums.ExperienceGroup;
+import back.pickd.experience.enums.ExperienceType;
+import back.pickd.experience.enums.Status;
+import back.pickd.experience.repository.UserExperienceRepository;
 import back.pickd.global.infra.ai.AiClient;
 import back.pickd.global.infra.ai.dto.AiExperienceMergeCheckRequest;
 import back.pickd.user.entity.User;
-import back.pickd.user.entity.UserExperience;
-import back.pickd.user.entity.enums.ExperienceGroup;
-import back.pickd.user.entity.enums.ExperienceType;
-import back.pickd.user.entity.enums.Status;
-import back.pickd.user.repository.UserExperienceRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;

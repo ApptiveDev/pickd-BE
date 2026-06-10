@@ -1,6 +1,6 @@
-package back.pickd.user.utils;
+package back.pickd.experience.support;
 
-import back.pickd.user.entity.enums.ExperienceType;
+import back.pickd.experience.enums.ExperienceType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class PresetRegistryTest {
 
@@ -67,5 +68,49 @@ class PresetRegistryTest {
         assertEquals("픽드 백엔드", result.get("project_name"));
         assertEquals("2023.01 ~ 2023.12", result.get("period"));
         assertEquals("커스텀 값", result.get("알 수 없는 필드"));
+    }
+
+    @Test
+    @DisplayName("알바 한글 라벨을 표준 영문 키로 변환한다")
+    void normalizeAttributes_withAlbaLabels() {
+        Map<String, Object> input = Map.of(
+                "근무처명", "카페",
+                "업무 유형", "고객 응대",
+                "주요 경험", "운영 개선"
+        );
+
+        Map<String, Object> result =
+                presetRegistry.normalizeAttributes(ExperienceType.ALBA, input);
+
+        assertEquals("카페", result.get("workplace_name"));
+        assertEquals("고객 응대", result.get("work_type"));
+        assertEquals("운영 개선", result.get("key_experience"));
+    }
+
+    @Test
+    @DisplayName("학부연구생 한글 라벨을 표준 영문 키로 변환한다")
+    void normalizeAttributes_withResearchLabels() {
+        Map<String, Object> input = Map.of(
+                "연구실명", "데이터 연구실",
+                "연구 주제", "추천 시스템",
+                "주요 결과물", "학술 포스터"
+        );
+
+        Map<String, Object> result =
+                presetRegistry.normalizeAttributes(ExperienceType.RESEARCH, input);
+
+        assertEquals("데이터 연구실", result.get("lab_name"));
+        assertEquals("추천 시스템", result.get("research_topic"));
+        assertEquals("학술 포스터", result.get("deliverables"));
+    }
+
+    @Test
+    @DisplayName("null 또는 빈 attributes는 빈 Map으로 반환한다")
+    void normalizeAttributes_withNullAndEmptyMap() {
+        assertTrue(presetRegistry.normalizeAttributes(ExperienceType.PROJECT, null).isEmpty());
+        assertTrue(presetRegistry.normalizeAttributes(
+                ExperienceType.PROJECT,
+                Map.of()
+        ).isEmpty());
     }
 }

@@ -1,17 +1,18 @@
-package back.pickd.user.service;
+package back.pickd.experience.service;
 
+import back.pickd.experience.dto.ExperienceExtractionDto.Step3Request;
+import back.pickd.experience.dto.ExperienceExtractionDto.Step3Response;
+import back.pickd.experience.entity.UserExperience;
+import back.pickd.experience.enums.ExperienceGroup;
+import back.pickd.experience.enums.ExperienceType;
+import back.pickd.experience.enums.Status;
+import back.pickd.experience.repository.ExperienceTempRepository;
+import back.pickd.experience.repository.UserExperienceRepository;
+import back.pickd.experience.support.PresetRegistry;
 import back.pickd.global.infra.ai.AiClient;
 import back.pickd.global.infra.s3.S3Service;
-import back.pickd.user.dto.ExperienceStep3Request;
-import back.pickd.user.dto.ExperienceStep3Response;
 import back.pickd.user.entity.User;
-import back.pickd.user.entity.UserExperience;
-import back.pickd.user.entity.enums.ExperienceGroup;
-import back.pickd.user.entity.enums.ExperienceType;
-import back.pickd.user.entity.enums.Status;
-import back.pickd.user.repository.ExperienceTempRepository;
-import back.pickd.user.repository.UserExperienceRepository;
-import back.pickd.user.utils.PresetRegistry;
+import back.pickd.user.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -24,6 +25,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -97,13 +99,13 @@ class ExperienceExtractionServiceTest {
                   ]
                 }
                 """;
-        ExperienceStep3Request request = objectMapper.readValue(requestJson, ExperienceStep3Request.class);
+        Step3Request request = objectMapper.readValue(requestJson, Step3Request.class);
 
         when(userService.findByEmail("user@example.com")).thenReturn(user);
         when(presetRegistry.normalizeAttributes(any(ExperienceType.class), any())).thenAnswer(invocation -> invocation.getArgument(1));
         when(experienceRepository.save(any(UserExperience.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        ExperienceStep3Response response = experienceExtractionService.confirmStep3("user@example.com", request);
+        Step3Response response = experienceExtractionService.confirmStep3("user@example.com", request);
 
         assertEquals(1, response.getSavedExperiences().size());
         assertEquals(1, response.getSkippedCount());
@@ -118,5 +120,6 @@ class ExperienceExtractionServiceTest {
         assertEquals(Status.COMPLETED, saved.getStatus());
         assertEquals("미래에셋", saved.getAttributes().get("organization"));
         assertEquals(List.of("문제 해결", "분석력", "실행력"), saved.getKeywords());
+        verify(presetRegistry).normalizeAttributes(eq(ExperienceType.PROJECT), any());
     }
 }
