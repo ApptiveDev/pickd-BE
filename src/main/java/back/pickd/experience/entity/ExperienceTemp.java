@@ -1,5 +1,6 @@
-package back.pickd.user.entity;
+package back.pickd.experience.entity;
 
+import back.pickd.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;

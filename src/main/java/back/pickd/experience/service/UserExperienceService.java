@@ -1,17 +1,17 @@
-package back.pickd.user.service;
+package back.pickd.experience.service;
 
-import back.pickd.user.dto.ExperienceCreateRequestDto;
-import back.pickd.user.dto.ExperienceCreateResponseDto;
-import back.pickd.user.dto.UserExperienceResponse;
-import back.pickd.user.entity.ExperienceLink;
+import back.pickd.experience.dto.ExperienceCreateDto.Request;
+import back.pickd.experience.dto.ExperienceCreateDto.Response;
+import back.pickd.experience.dto.ExperienceResponse;
+import back.pickd.experience.entity.ExperienceLink;
 import back.pickd.user.entity.User;
-import back.pickd.user.entity.UserExperience;
-import back.pickd.user.exception.ExperienceMergeConflictException;
-import back.pickd.user.repository.UserExperienceRepository;
+import back.pickd.experience.entity.UserExperience;
+import back.pickd.experience.exception.ExperienceMergeConflictException;
+import back.pickd.experience.repository.UserExperienceRepository;
 import back.pickd.user.repository.UserRepository;
-import back.pickd.user.entity.enums.ExperienceGroup;
-import back.pickd.user.entity.enums.ExperienceType;
-import back.pickd.user.utils.PresetRegistry;
+import back.pickd.experience.enums.ExperienceGroup;
+import back.pickd.experience.enums.ExperienceType;
+import back.pickd.experience.support.PresetRegistry;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +32,7 @@ public class UserExperienceService {
 
     // 경험 수기 생성
     @Transactional
-    public ExperienceCreateResponseDto createExperience(String email, ExperienceCreateRequestDto request) {
+    public Response createExperience(String email, Request request) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
@@ -70,25 +70,25 @@ public class UserExperienceService {
         }
 
         UserExperience saved = userExperienceRepository.save(experience);
-        return new ExperienceCreateResponseDto(saved.getId());
+        return new Response(saved.getId());
     }
 
     // 경험 단일 조회
-    public UserExperienceResponse getExperience(String email, String id) {
+    public ExperienceResponse getExperience(String email, String id) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         UserExperience experience = userExperienceRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new IllegalArgumentException("경험을 찾을 수 없습니다."));
-        return new UserExperienceResponse(experience);
+        return new ExperienceResponse(experience);
     }
 
     // 경험 목록 조회 (필터링 적용)
-    public List<UserExperienceResponse> getExperiences(String email, ExperienceType type, ExperienceGroup group) {
+    public List<ExperienceResponse> getExperiences(String email, ExperienceType type, ExperienceGroup group) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
         return userExperienceRepository.findByUserWithFilters(user, type, group)
                 .stream()
-                .map(UserExperienceResponse::new)
+                .map(ExperienceResponse::new)
                 .collect(Collectors.toList());
     }
 }

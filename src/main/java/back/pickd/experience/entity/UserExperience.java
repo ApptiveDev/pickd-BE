@@ -1,8 +1,9 @@
-package back.pickd.user.entity;
+package back.pickd.experience.entity;
 
-import back.pickd.user.entity.enums.ExperienceGroup;
-import back.pickd.user.entity.enums.ExperienceType;
-import back.pickd.user.entity.enums.Status;
+import back.pickd.experience.enums.ExperienceGroup;
+import back.pickd.experience.enums.ExperienceType;
+import back.pickd.experience.enums.Status;
+import back.pickd.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;

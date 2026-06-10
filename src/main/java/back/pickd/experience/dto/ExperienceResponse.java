@@ -1,8 +1,8 @@
-package back.pickd.user.dto;
+package back.pickd.experience.dto;
 
-import back.pickd.user.entity.ExperienceFile;
-import back.pickd.user.entity.ExperienceLink;
-import back.pickd.user.entity.UserExperience;
+import back.pickd.experience.entity.ExperienceFile;
+import back.pickd.experience.entity.ExperienceLink;
+import back.pickd.experience.entity.UserExperience;
 import lombok.Getter;
 
 import java.time.OffsetDateTime;
@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Getter
-public class UserExperienceResponse {
+public class ExperienceResponse {
 
     private final String id;
     private final Long userId;
@@ -27,20 +27,24 @@ public class UserExperienceResponse {
     private final OffsetDateTime createdAt;
     private final OffsetDateTime updatedAt;
 
-    public UserExperienceResponse(UserExperience exp) {
-        this.id = exp.getId();
-        this.userId = exp.getUser().getId();
-        this.title = exp.getTitle();
-        this.experienceType = exp.getExperienceType() != null ? exp.getExperienceType().name() : null;
-        this.experienceGroup = exp.getExperienceGroup() != null ? exp.getExperienceGroup().name() : null;
-        this.status = exp.getStatus() != null ? exp.getStatus().name() : null;
-        this.documentContent = exp.getDocumentContent();
-        this.attributes = exp.getAttributes();
-        this.keywords = exp.getKeywords();
-        this.files = exp.getFiles().stream().map(FileInfo::new).collect(Collectors.toList());
-        this.links = exp.getLinks().stream().map(LinkInfo::new).collect(Collectors.toList());
-        this.createdAt = exp.getCreatedAt();
-        this.updatedAt = exp.getUpdatedAt();
+    public ExperienceResponse(UserExperience experience) {
+        this.id = experience.getId();
+        this.userId = experience.getUser().getId();
+        this.title = experience.getTitle();
+        this.experienceType = experience.getExperienceType() != null
+                ? experience.getExperienceType().name()
+                : null;
+        this.experienceGroup = experience.getExperienceGroup() != null
+                ? experience.getExperienceGroup().name()
+                : null;
+        this.status = experience.getStatus() != null ? experience.getStatus().name() : null;
+        this.documentContent = experience.getDocumentContent();
+        this.attributes = experience.getAttributes();
+        this.keywords = experience.getKeywords();
+        this.files = experience.getFiles().stream().map(FileInfo::new).collect(Collectors.toList());
+        this.links = experience.getLinks().stream().map(LinkInfo::new).collect(Collectors.toList());
+        this.createdAt = experience.getCreatedAt();
+        this.updatedAt = experience.getUpdatedAt();
     }
 
     @Getter

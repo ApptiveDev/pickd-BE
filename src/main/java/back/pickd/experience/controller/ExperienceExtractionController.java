@@ -1,13 +1,13 @@
-package back.pickd.user.controller;
+package back.pickd.experience.controller;
 
-import back.pickd.user.dto.ExperienceTempResponse;
-import back.pickd.user.dto.ExperienceStep3Request;
-import back.pickd.user.dto.ExperienceStep3Response;
-import back.pickd.user.dto.ExperienceStep2Response;
-import back.pickd.user.dto.ExperienceStep2SaveResult;
-import back.pickd.user.dto.UserExperienceResponse;
+import back.pickd.experience.dto.ExperienceExtractionDto.Step2Response;
+import back.pickd.experience.dto.ExperienceExtractionDto.Step2SaveResult;
+import back.pickd.experience.dto.ExperienceExtractionDto.Step3Request;
+import back.pickd.experience.dto.ExperienceExtractionDto.Step3Response;
+import back.pickd.experience.dto.ExperienceExtractionDto.TempResponse;
+import back.pickd.experience.dto.ExperienceResponse;
+import back.pickd.experience.service.ExperienceExtractionService;
 import jakarta.validation.Valid;
-import back.pickd.user.service.ExperienceExtractionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -26,36 +26,36 @@ public class ExperienceExtractionController {
     private final ExperienceExtractionService extractionService;
 
     @PostMapping("/step1")
-    public ResponseEntity<List<ExperienceTempResponse>> extractStep1(
+    public ResponseEntity<List<TempResponse>> extractStep1(
             Authentication authentication,
             @RequestParam("file") MultipartFile file) {
 
-        List<ExperienceTempResponse> result = extractionService.extractStep1(authentication.getName(), file)
+        List<TempResponse> result = extractionService.extractStep1(authentication.getName(), file)
                 .stream()
-                .map(ExperienceTempResponse::new)
+                .map(TempResponse::new)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(result);
     }
 
 
     @PostMapping("/step2")
-    public ResponseEntity<ExperienceStep2Response> extractStep2(
+    public ResponseEntity<Step2Response> extractStep2(
             Authentication authentication,
             @RequestBody Map<String, List<Long>> request) {
 
         List<Long> selectedTempIds = request.get("selectedTempIds");
-        ExperienceStep2SaveResult result = extractionService.extractStep2(authentication.getName(), selectedTempIds);
-        List<UserExperienceResponse> savedExperiences = result.getSavedExperiences()
+        Step2SaveResult result = extractionService.extractStep2(authentication.getName(), selectedTempIds);
+        List<ExperienceResponse> savedExperiences = result.getSavedExperiences()
                 .stream()
-                .map(UserExperienceResponse::new)
+                .map(ExperienceResponse::new)
                 .collect(Collectors.toList());
-        return ResponseEntity.ok(new ExperienceStep2Response(savedExperiences, result.getMergeCandidates()));
+        return ResponseEntity.ok(new Step2Response(savedExperiences, result.getMergeCandidates()));
     }
 
     @PostMapping("/step3")
-    public ResponseEntity<ExperienceStep3Response> confirmStep3(
+    public ResponseEntity<Step3Response> confirmStep3(
             Authentication authentication,
-            @RequestBody @Valid ExperienceStep3Request request) {
+            @RequestBody @Valid Step3Request request) {
 
         return ResponseEntity.ok(extractionService.confirmStep3(authentication.getName(), request));
     }

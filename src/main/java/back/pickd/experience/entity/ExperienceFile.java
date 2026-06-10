@@ -1,4 +1,4 @@
-package back.pickd.user.entity;
+package back.pickd.experience.entity;
 
 import jakarta.persistence.*;
 import lombok.*;

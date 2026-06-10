@@ -1,9 +1,9 @@
-package back.pickd.user.repository;
+package back.pickd.experience.repository;
 
 import back.pickd.user.entity.User;
-import back.pickd.user.entity.UserExperience;
-import back.pickd.user.entity.enums.ExperienceGroup;
-import back.pickd.user.entity.enums.ExperienceType;
+import back.pickd.experience.entity.UserExperience;
+import back.pickd.experience.enums.ExperienceGroup;
+import back.pickd.experience.enums.ExperienceType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

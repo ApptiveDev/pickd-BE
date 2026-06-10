@@ -1,11 +1,11 @@
-package back.pickd.user.controller;
+package back.pickd.experience.controller;
 
-import back.pickd.user.dto.ExperienceCreateRequestDto;
-import back.pickd.user.dto.ExperienceCreateResponseDto;
-import back.pickd.user.dto.UserExperienceResponse;
-import back.pickd.user.entity.enums.ExperienceGroup;
-import back.pickd.user.entity.enums.ExperienceType;
-import back.pickd.user.service.UserExperienceService;
+import back.pickd.experience.dto.ExperienceCreateDto.Request;
+import back.pickd.experience.dto.ExperienceCreateDto.Response;
+import back.pickd.experience.dto.ExperienceResponse;
+import back.pickd.experience.enums.ExperienceGroup;
+import back.pickd.experience.enums.ExperienceType;
+import back.pickd.experience.service.UserExperienceService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,16 +24,16 @@ public class UserExperienceController {
 
     // 경험 수기 생성
     @PostMapping
-    public ResponseEntity<ExperienceCreateResponseDto> createExperience(
+    public ResponseEntity<Response> createExperience(
             Authentication authentication,
-            @RequestBody @Valid ExperienceCreateRequestDto request) {
+            @RequestBody @Valid Request request) {
         return ResponseEntity.ok(
                 userExperienceService.createExperience(authentication.getName(), request));
     }
 
     // 경험 단일 조회
     @GetMapping("/{id}")
-    public ResponseEntity<UserExperienceResponse> getExperience(
+    public ResponseEntity<ExperienceResponse> getExperience(
             Authentication authentication,
             @PathVariable String id) {
         return ResponseEntity.ok(
@@ -42,7 +42,7 @@ public class UserExperienceController {
 
     // 경험 목록 조회 (필터링 적용)
     @GetMapping
-    public ResponseEntity<List<UserExperienceResponse>> getExperiences(
+    public ResponseEntity<List<ExperienceResponse>> getExperiences(
             Authentication authentication,
             @RequestParam(required = false) ExperienceType type,
             @RequestParam(required = false) ExperienceGroup group) {

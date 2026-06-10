@@ -1,4 +1,4 @@
-package back.pickd.user.entity.enums;
+package back.pickd.experience.enums;
 
 public enum ExperienceType {
     PROJECT("프로젝트"),

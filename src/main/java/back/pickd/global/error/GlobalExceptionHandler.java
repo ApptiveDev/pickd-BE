@@ -1,7 +1,7 @@
 package back.pickd.global.error;
 
-import back.pickd.user.dto.ExperienceMergeConflictResponse;
-import back.pickd.user.exception.ExperienceMergeConflictException;
+import back.pickd.experience.dto.ExperienceMergeDto.Conflict;
+import back.pickd.experience.exception.ExperienceMergeConflictException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -34,7 +34,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(ExperienceMergeConflictException.class)
-    public ResponseEntity<ExperienceMergeConflictResponse> handleExperienceMergeConflict(ExperienceMergeConflictException e) {
+    public ResponseEntity<Conflict> handleExperienceMergeConflict(ExperienceMergeConflictException e) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(e.getResponse());
     }
 

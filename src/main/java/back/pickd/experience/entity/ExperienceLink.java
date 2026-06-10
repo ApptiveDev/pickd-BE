@@ -1,4 +1,4 @@
-package back.pickd.user.entity;
+package back.pickd.experience.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;

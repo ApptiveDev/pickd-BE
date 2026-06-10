@@ -1,6 +1,6 @@
-package back.pickd.user.repository;
+package back.pickd.experience.repository;
 
-import back.pickd.user.entity.ExperienceTemp;
+import back.pickd.experience.entity.ExperienceTemp;
 import back.pickd.user.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;

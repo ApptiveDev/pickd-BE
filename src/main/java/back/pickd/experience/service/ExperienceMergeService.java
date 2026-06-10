@@ -1,19 +1,19 @@
-package back.pickd.user.service;
+package back.pickd.experience.service;
 
 import back.pickd.global.infra.ai.AiClient;
 import back.pickd.global.infra.ai.dto.AiExperienceMergeCheckRequest;
 import back.pickd.global.infra.ai.dto.AiExperienceMergeCheckResponse;
 import back.pickd.global.infra.ai.dto.AiStep2Response;
-import back.pickd.user.dto.ExperienceCreateRequestDto;
-import back.pickd.user.dto.ExperienceDraftResponse;
-import back.pickd.user.dto.ExperienceMergeCandidateResponse;
-import back.pickd.user.dto.ExperienceMergeConflictResponse;
+import back.pickd.experience.dto.ExperienceCreateDto.Request;
+import back.pickd.experience.dto.ExperienceMergeDto.Candidate;
+import back.pickd.experience.dto.ExperienceMergeDto.Conflict;
+import back.pickd.experience.dto.ExperienceMergeDto.Draft;
 import back.pickd.user.entity.User;
-import back.pickd.user.entity.UserExperience;
-import back.pickd.user.entity.enums.ExperienceGroup;
-import back.pickd.user.entity.enums.ExperienceType;
-import back.pickd.user.entity.enums.Status;
-import back.pickd.user.repository.UserExperienceRepository;
+import back.pickd.experience.entity.UserExperience;
+import back.pickd.experience.enums.ExperienceGroup;
+import back.pickd.experience.enums.ExperienceType;
+import back.pickd.experience.enums.Status;
+import back.pickd.experience.repository.UserExperienceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,9 +38,9 @@ public class ExperienceMergeService {
                 .toList();
     }
 
-    public Optional<ExperienceMergeConflictResponse> findCreateMergeCandidate(
+    public Optional<Conflict> findCreateMergeCandidate(
             User user,
-            ExperienceCreateRequestDto request
+            Request request
     ) {
         List<AiExperienceMergeCheckRequest.ExperiencePayload> existingExperiences = buildExistingExperiencePayloads(user);
         if (existingExperiences.isEmpty()) {
@@ -56,11 +56,11 @@ public class ExperienceMergeService {
             return Optional.empty();
         }
 
-        Optional<ExperienceMergeConflictResponse> conflict = buildConflictResponse(
+        Optional<Conflict> conflict = buildConflictResponse(
                 user,
                 result.getMergeCandidateId(),
                 result.getSimilarity(),
-                ExperienceDraftResponse.fromCreateRequest(request)
+                Draft.fromCreateRequest(request)
         );
         if (conflict.isEmpty()) {
             throw new RuntimeException("AI 병합 후보를 사용자 경험에서 찾을 수 없습니다.");
@@ -68,7 +68,7 @@ public class ExperienceMergeService {
         return conflict;
     }
 
-    public Optional<ExperienceMergeConflictResponse> buildStep2MergeCandidate(
+    public Optional<Conflict> buildStep2MergeCandidate(
             User user,
             AiStep2Response.Step2ExperienceDto dto,
             ExperienceType type,
@@ -78,11 +78,11 @@ public class ExperienceMergeService {
             return Optional.empty();
         }
 
-        Optional<ExperienceMergeConflictResponse> conflict = buildConflictResponse(
+        Optional<Conflict> conflict = buildConflictResponse(
                 user,
                 dto.getMerge_candidate_id(),
                 dto.getMerge_similarity(),
-                ExperienceDraftResponse.fromStep2(dto, type, group, Status.COMPLETED)
+                Draft.fromStep2(dto, type, group, Status.COMPLETED)
         );
         if (conflict.isEmpty()) {
             throw new RuntimeException("AI 병합 후보를 사용자 경험에서 찾을 수 없습니다.");
@@ -106,11 +106,11 @@ public class ExperienceMergeService {
         return response.getResults().get(0);
     }
 
-    private Optional<ExperienceMergeConflictResponse> buildConflictResponse(
+    private Optional<Conflict> buildConflictResponse(
             User user,
             String mergeCandidateId,
             Double similarity,
-            ExperienceDraftResponse draft
+            Draft draft
     ) {
         if (mergeCandidateId == null) {
             return Optional.empty();
@@ -118,9 +118,8 @@ public class ExperienceMergeService {
 
         return userExperienceRepository.findByIdAndUser(mergeCandidateId, user)
                 .map(candidate -> {
-                    ExperienceMergeCandidateResponse candidateResponse =
-                            ExperienceMergeCandidateResponse.from(candidate, similarity);
-                    return new ExperienceMergeConflictResponse(
+                    Candidate candidateResponse = Candidate.from(candidate, similarity);
+                    return new Conflict(
                             true,
                             candidateResponse,
                             similarity,
@@ -142,7 +141,7 @@ public class ExperienceMergeService {
                 .build();
     }
 
-    private AiExperienceMergeCheckRequest.ExperiencePayload toPayload(ExperienceCreateRequestDto request) {
+    private AiExperienceMergeCheckRequest.ExperiencePayload toPayload(Request request) {
         return AiExperienceMergeCheckRequest.ExperiencePayload.builder()
                 .title(request.getTitle())
                 .experienceName(request.getTitle())

@@ -1,6 +1,6 @@
-package back.pickd.user.utils;
+package back.pickd.experience.support;
 
-import back.pickd.user.entity.enums.ExperienceType;
+import back.pickd.experience.enums.ExperienceType;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
