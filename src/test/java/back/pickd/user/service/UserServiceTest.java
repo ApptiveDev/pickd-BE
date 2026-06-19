@@ -53,4 +53,19 @@ class UserServiceTest {
         assertEquals(imageUrl, user.getPicture());
         verify(s3Service).uploadFile(file, FileUploadType.PROFILE, user.getId());
     }
+
+    @Test
+    void getProfileImageReturnsUserPicture() {
+        User user = User.builder()
+                .email("user@example.com")
+                .name("테스트")
+                .picture("https://cdn.example.com/user/profile/1/profile.png")
+                .build();
+
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
+
+        String result = userService.getProfileImage("user@example.com");
+
+        assertEquals("https://cdn.example.com/user/profile/1/profile.png", result);
+    }
 }

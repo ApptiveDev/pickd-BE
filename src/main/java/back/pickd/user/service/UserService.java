@@ -46,4 +46,9 @@ public class UserService {
         user.updatePicture(profileImageUrl);
         return profileImageUrl;
     }
+
+    @Transactional(readOnly = true)
+    public String getProfileImage(String email) {
+        return findByEmail(email).getPicture();
+    }
 }

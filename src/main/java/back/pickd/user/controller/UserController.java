@@ -36,4 +36,10 @@ public class UserController {
         String profileImageUrl = userService.updateProfileImage(authentication.getName(), file);
         return ResponseEntity.ok(Map.of("profileImageUrl", profileImageUrl));
     }
+
+    @GetMapping("/profile-image")
+    public ResponseEntity<Map<String, String>> getProfileImage(Authentication authentication) {
+        String profileImageUrl = userService.getProfileImage(authentication.getName());
+        return ResponseEntity.ok(Map.of("profileImageUrl", profileImageUrl));
+    }
 }
