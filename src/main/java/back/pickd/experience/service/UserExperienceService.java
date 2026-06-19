@@ -57,17 +57,7 @@ public class UserExperienceService {
                 .keywords(request.getKeywords())
                 .build();
 
-        if (request.getLinks() != null) {
-            List<ExperienceLink> links = request.getLinks().stream()
-                    .map(l -> ExperienceLink.builder()
-                            .title(l.getTitle())
-                            .url(l.getUrl())
-                            .materialType(l.getMaterialType())
-                            .documentPosition(l.getDocumentPosition())
-                            .build())
-                    .collect(Collectors.toList());
-            experience.updateLinks(links);
-        }
+        experience.updateLinks(toLinks(request));
 
         UserExperience saved = userExperienceRepository.save(experience);
         return new Response(saved.getId());
@@ -89,6 +79,52 @@ public class UserExperienceService {
         return userExperienceRepository.findByUserWithFilters(user, type, group)
                 .stream()
                 .map(ExperienceResponse::new)
+                .collect(Collectors.toList());
+    }
+    // 경험 수정/삭제
+    @Transactional
+    public ExperienceResponse updateExperience(String email, String id, Request request) {
+        UserExperience experience = findOwnedExperience(email, id);
+        experience.update(
+                request.getTitle(),
+                request.getExperienceType(),
+                request.getExperienceGroup(),
+                request.getStatus(),
+                request.getDocumentContent(),
+                presetRegistry.normalizeAttributes(
+                        request.getExperienceType(),
+                        request.getAttributes()
+                ),
+                request.getKeywords()
+        );
+        experience.updateLinks(toLinks(request));
+        return new ExperienceResponse(experience);
+    }
+    //자기 경험이면 삭제
+    @Transactional
+    public void deleteExperience(String email, String id) {
+        UserExperience experience = findOwnedExperience(email, id);
+        userExperienceRepository.delete(experience);
+    }
+
+    private UserExperience findOwnedExperience(String email, String id) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        return userExperienceRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> new IllegalArgumentException("경험을 찾을 수 없습니다."));
+    }
+
+    private List<ExperienceLink> toLinks(Request request) {
+        if (request.getLinks() == null) {
+            return List.of();
+        }
+        return request.getLinks().stream()
+                .map(l -> ExperienceLink.builder()
+                        .title(l.getTitle())
+                        .url(l.getUrl())
+                        .materialType(l.getMaterialType())
+                        .documentPosition(l.getDocumentPosition())
+                        .build())
                 .collect(Collectors.toList());
     }
 }

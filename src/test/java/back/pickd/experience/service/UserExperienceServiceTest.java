@@ -144,6 +144,61 @@ class UserExperienceServiceTest {
         );
     }
 
+    @Test
+    void updateExperienceUpdatesOwnedExperience() throws Exception {
+        User user = createUser();
+        UserExperience experience = createExperience(user, "exp-1");
+        Request request = objectMapper.readValue("""
+                {
+                  "title": "Pickd 개선",
+                  "experienceType": "PROJECT",
+                  "experienceGroup": "NARRATIVE",
+                  "status": "IN_PROGRESS",
+                  "documentContent": "경험 수정 API를 구현했습니다.",
+                  "attributes": {
+                    "프로젝트명": "Pickd 개선"
+                  },
+                  "keywords": ["API"],
+                  "links": []
+                }
+                """, Request.class);
+        Map<String, Object> normalized = Map.of("project_name", "Pickd 개선");
+
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
+        when(userExperienceRepository.findByIdAndUser("exp-1", user))
+                .thenReturn(Optional.of(experience));
+        when(presetRegistry.normalizeAttributes(
+                ExperienceType.PROJECT,
+                request.getAttributes()
+        )).thenReturn(normalized);
+
+        ExperienceResponse response =
+                userExperienceService.updateExperience("user@example.com", "exp-1", request);
+
+        assertEquals("Pickd 개선", response.getTitle());
+        assertEquals("IN_PROGRESS", response.getStatus());
+        assertEquals("경험 수정 API를 구현했습니다.", response.getDocumentContent());
+        assertEquals(normalized, response.getAttributes());
+        verify(presetRegistry).normalizeAttributes(
+                eq(ExperienceType.PROJECT),
+                eq(request.getAttributes())
+        );
+    }
+
+    @Test
+    void deleteExperienceDeletesOwnedExperience() {
+        User user = createUser();
+        UserExperience experience = createExperience(user, "exp-1");
+
+        when(userRepository.findByEmail("user@example.com")).thenReturn(Optional.of(user));
+        when(userExperienceRepository.findByIdAndUser("exp-1", user))
+                .thenReturn(Optional.of(experience));
+
+        userExperienceService.deleteExperience("user@example.com", "exp-1");
+
+        verify(userExperienceRepository).delete(experience);
+    }
+
     private User createUser() {
         return User.builder()
                 .email("user@example.com")

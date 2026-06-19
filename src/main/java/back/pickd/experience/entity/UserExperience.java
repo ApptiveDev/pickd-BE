@@ -88,6 +88,24 @@ public class UserExperience {
         this.updatedAt = OffsetDateTime.now();
     }
 
+    public void update(
+            String title,
+            ExperienceType experienceType,
+            ExperienceGroup experienceGroup,
+            Status status,
+            String documentContent,
+            Map<String, Object> attributes,
+            List<String> keywords
+    ) {
+        this.title = title;
+        this.experienceType = experienceType;
+        this.experienceGroup = experienceGroup;
+        this.status = status;
+        this.documentContent = documentContent;
+        this.attributes = attributes;
+        this.keywords = keywords;
+    }
+
     public void updateLinks(List<ExperienceLink> newLinks) {
         this.links.clear();
         if (newLinks != null) {
