@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/user")
@@ -15,14 +18,22 @@ public class UserController {
 
     private final UserService userService;
 
-@GetMapping
-public ResponseEntity<UserResponseDto> getUser(Authentication authentication) {
-    User user = userService.findByEmail(authentication.getName());
+    @GetMapping
+    public ResponseEntity<UserResponseDto> getUser(Authentication authentication) {
+        User user = userService.findByEmail(authentication.getName());
 
-    return ResponseEntity.ok(
-            UserResponseDto.builder()
-                    .nickname(user.getNickname())
-                    .build()
-    );
-}
+        return ResponseEntity.ok(
+                UserResponseDto.builder()
+                        .nickname(user.getNickname())
+                        .build()
+        );
+    }
+
+    @PostMapping("/profile-image")
+    public ResponseEntity<Map<String, String>> uploadProfileImage(
+            Authentication authentication,
+            @RequestParam("file") MultipartFile file) {
+        String profileImageUrl = userService.updateProfileImage(authentication.getName(), file);
+        return ResponseEntity.ok(Map.of("profileImageUrl", profileImageUrl));
+    }
 }
