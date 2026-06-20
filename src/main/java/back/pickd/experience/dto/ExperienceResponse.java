@@ -20,6 +20,9 @@ public class ExperienceResponse {
     private final String experienceGroup;
     private final String status;
     private final String documentContent;
+    private final String organization;
+    private final String period;
+    private final String importance;
     private final Map<String, Object> attributes;
     private final List<String> keywords;
     private final List<FileInfo> files;
@@ -40,11 +43,40 @@ public class ExperienceResponse {
         this.status = experience.getStatus() != null ? experience.getStatus().name() : null;
         this.documentContent = experience.getDocumentContent();
         this.attributes = experience.getAttributes();
+        this.organization = getAttributeValue(
+                this.attributes,
+                "organization",
+                "workplace_name",
+                "lab_name"
+        );
+        this.period = getAttributeValue(
+                this.attributes,
+                "period",
+                "exam_date",
+                "acquisition_date",
+                "award_date",
+                "semester"
+        );
+        this.importance = getAttributeValue(this.attributes, "importance");
         this.keywords = experience.getKeywords();
         this.files = experience.getFiles().stream().map(FileInfo::new).collect(Collectors.toList());
         this.links = experience.getLinks().stream().map(LinkInfo::new).collect(Collectors.toList());
         this.createdAt = experience.getCreatedAt();
         this.updatedAt = experience.getUpdatedAt();
+    }
+
+    private String getAttributeValue(Map<String, Object> attributes, String... keys) {
+        if (attributes == null || attributes.isEmpty()) {
+            return null;
+        }
+
+        for (String key : keys) {
+            Object value = attributes.get(key);
+            if (value != null) {
+                return value.toString();
+            }
+        }
+        return null;
     }
 
     @Getter
