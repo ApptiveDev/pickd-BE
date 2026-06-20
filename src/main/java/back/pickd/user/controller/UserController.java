@@ -1,6 +1,6 @@
 package back.pickd.user.controller;
 
-import back.pickd.user.dto.UserResponseDto;
+import back.pickd.user.dto.UserProfileDto;
 import back.pickd.user.entity.User;
 import back.pickd.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -19,14 +19,9 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    public ResponseEntity<UserResponseDto> getUser(Authentication authentication) {
+    public ResponseEntity<UserProfileDto> getUser(Authentication authentication) {
         User user = userService.findByEmail(authentication.getName());
-
-        return ResponseEntity.ok(
-                UserResponseDto.builder()
-                        .nickname(user.getNickname())
-                        .build()
-        );
+        return ResponseEntity.ok(UserProfileDto.from(user));
     }
 
     @PostMapping("/profile-image")

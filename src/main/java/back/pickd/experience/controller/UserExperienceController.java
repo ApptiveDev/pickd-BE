@@ -49,4 +49,23 @@ public class UserExperienceController {
         return ResponseEntity.ok(
                 userExperienceService.getExperiences(authentication.getName(), type, group));
     }
+
+    // 경험 수정
+    @PutMapping("/{id}")
+    public ResponseEntity<ExperienceResponse> updateExperience(
+            Authentication authentication,
+            @PathVariable String id,
+            @RequestBody @Valid Request request) {
+        return ResponseEntity.ok(
+                userExperienceService.updateExperience(authentication.getName(), id, request));
+    }
+
+    // 경험 삭제
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteExperience(
+            Authentication authentication,
+            @PathVariable String id) {
+        userExperienceService.deleteExperience(authentication.getName(), id);
+        return ResponseEntity.noContent().build();
+    }
 }
