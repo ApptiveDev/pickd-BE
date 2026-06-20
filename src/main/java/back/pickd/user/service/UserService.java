@@ -3,6 +3,7 @@ package back.pickd.user.service;
 import back.pickd.global.infra.s3.FileUploadType;
 import back.pickd.global.infra.s3.S3Service;
 import back.pickd.user.entity.User;
+import back.pickd.user.entity.enums.OnboardingStep;
 import back.pickd.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,7 +28,7 @@ public class UserService {
                         .email(email)
                         .name(name)
                         .picture(picture)
-                        .onboardingStep(back.pickd.user.entity.enums.OnboardingStep.NONE)
+                        .onboardingStep(OnboardingStep.NONE)
                         .build());
 
         return userRepository.save(user);
