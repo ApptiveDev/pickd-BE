@@ -123,6 +123,10 @@ public class User {
         return this;
     }
 
+    public void updatePicture(String picture) {
+        this.picture = picture;
+    }
+
     public void updateTerms(boolean serviceAgreed, boolean privacyAgreed, boolean marketingAgreed, boolean pushAgreed) {
         this.serviceAgreed = serviceAgreed;
         this.privacyAgreed = privacyAgreed;

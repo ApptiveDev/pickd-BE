@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 @Getter
 @RequiredArgsConstructor
 public enum FileUploadType {
+    PROFILE("user/profile"),
     LICENSE("experience/license"),
     EDUCATION("experience/education"),
     LANGUAGE("experience/language"),
