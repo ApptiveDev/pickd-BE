@@ -5,6 +5,7 @@ import back.pickd.experience.entity.UserExperience;
 import back.pickd.experience.enums.ExperienceGroup;
 import back.pickd.experience.enums.ExperienceType;
 import back.pickd.experience.enums.Status;
+import back.pickd.experience.repository.ExperienceExtractionBatchRepository;
 import back.pickd.experience.repository.UserExperienceRepository;
 import back.pickd.user.entity.*;
 import back.pickd.user.entity.enums.*;
@@ -25,6 +26,7 @@ public class OnboardingService {
     private final UserInterestRepository interestRepository;
     private final UserPrepStatusRepository prepStatusRepository;
     private final UserExperienceRepository experienceRepository;
+    private final ExperienceExtractionBatchRepository extractionBatchRepository;
     private final UserCertificationRepository certificationRepository;
 
     @Transactional
@@ -87,7 +89,7 @@ public class OnboardingService {
 
     private void updateListInfos(User user, OnboardingRequest dto) {
         if (dto.getExperiences() != null) {
-            experienceRepository.deleteByUser(user);
+            deleteExistingExperiences(user);
             dto.getExperiences().forEach(e -> {
                 ExperienceType expType = ExperienceType.PROJECT;
                 ExperienceGroup expGroup = ExperienceGroup.NARRATIVE;
@@ -147,6 +149,18 @@ public class OnboardingService {
                     .build()
             ));
         }
+    }
+
+    private void deleteExistingExperiences(User user) {
+        extractionBatchRepository.deleteAll(
+                extractionBatchRepository.findByUserOrderByCreatedAtDesc(user)
+        );
+        extractionBatchRepository.flush();
+
+        experienceRepository.deleteAll(
+                experienceRepository.findByUserOrderByCreatedAtDesc(user)
+        );
+        experienceRepository.flush();
     }
 
     @Transactional
