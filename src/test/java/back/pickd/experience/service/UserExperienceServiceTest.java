@@ -115,10 +115,13 @@ class UserExperienceServiceTest {
         assertEquals("exp-1", response.getId());
         assertEquals("Pickd", response.getTitle());
         assertEquals("PROJECT", response.getExperienceType());
+        assertEquals("Apptive", response.getOrganization());
+        assertEquals("2026.01 ~ 2026.06", response.getPeriod());
+        assertEquals("HIGH", response.getImportance());
     }
 
     @Test
-    void getExperiencesUsesTypeAndGroupFilters() {
+    void getExperiencesUsesTypeGroupAndTitleFilters() {
         User user = createUser();
         UserExperience experience = createExperience(user, "exp-1");
 
@@ -126,13 +129,15 @@ class UserExperienceServiceTest {
         when(userExperienceRepository.findByUserWithFilters(
                 user,
                 ExperienceType.PROJECT,
-                ExperienceGroup.NARRATIVE
+                ExperienceGroup.NARRATIVE,
+                "Pick"
         )).thenReturn(List.of(experience));
 
         List<ExperienceResponse> responses = userExperienceService.getExperiences(
                 "user@example.com",
                 ExperienceType.PROJECT,
-                ExperienceGroup.NARRATIVE
+                ExperienceGroup.NARRATIVE,
+                "Pick"
         );
 
         assertEquals(1, responses.size());
@@ -140,7 +145,8 @@ class UserExperienceServiceTest {
         verify(userExperienceRepository).findByUserWithFilters(
                 user,
                 ExperienceType.PROJECT,
-                ExperienceGroup.NARRATIVE
+                ExperienceGroup.NARRATIVE,
+                "Pick"
         );
     }
 
@@ -214,7 +220,12 @@ class UserExperienceServiceTest {
                 .experienceType(ExperienceType.PROJECT)
                 .experienceGroup(ExperienceGroup.NARRATIVE)
                 .status(Status.COMPLETED)
-                .attributes(Map.of("project_name", "Pickd"))
+                .attributes(Map.of(
+                        "project_name", "Pickd",
+                        "organization", "Apptive",
+                        "period", "2026.01 ~ 2026.06",
+                        "importance", "HIGH"
+                ))
                 .keywords(List.of("백엔드"))
                 .build();
     }
