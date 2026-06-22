@@ -1,6 +1,8 @@
 package back.pickd.experience.support;
 
+import back.pickd.experience.enums.ExperienceGroup;
 import back.pickd.experience.enums.ExperienceType;
+import back.pickd.global.infra.ai.dto.AiExperiencePresetSchema;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -13,6 +15,14 @@ public class PresetRegistry {
 
     private static final Map<ExperienceType, List<PresetField>> PRESET_MAP =
             new EnumMap<>(ExperienceType.class);
+
+    private static final Set<ExperienceType> SPEC_TYPES = EnumSet.of(
+            ExperienceType.LANGUAGE,
+            ExperienceType.LICENSE,
+            ExperienceType.AWARD,
+            ExperienceType.COURSE,
+            ExperienceType.EDUCATION
+    );
 
     static {
         // 상세 서술형 (Narrative) 프리셋 필드 정의
@@ -114,6 +124,30 @@ public class PresetRegistry {
         return PRESET_MAP.getOrDefault(type, Collections.emptyList());
     }
 
+    public ExperienceGroup getExperienceGroup(ExperienceType type) {
+        return SPEC_TYPES.contains(type) ? ExperienceGroup.SPEC : ExperienceGroup.NARRATIVE;
+    }
+
+    public List<AiExperiencePresetSchema> getAiPresetSchemas(Collection<ExperienceType> types) {
+        if (types == null || types.isEmpty()) {
+            return List.of();
+        }
+
+        return new LinkedHashSet<>(types).stream()
+                .map(type -> new AiExperiencePresetSchema(
+                        toKoreanGroup(getExperienceGroup(type)),
+                        type.name(),
+                        type.getKoreanName(),
+                        getPresetFields(type).stream()
+                                .map(field -> new AiExperiencePresetSchema.Field(
+                                        field.key(),
+                                        field.label()
+                                ))
+                                .toList()
+                ))
+                .toList();
+    }
+
     /**
      * AI가 자의적으로 바꾼 필드명(예: '역할분담', '배정부서')을 백엔드의 표준 키명으로 매핑해주는 보정 유틸리티
      */
@@ -151,5 +185,9 @@ public class PresetRegistry {
                 .replace("_", "")
                 .trim()
                 .toLowerCase(Locale.ROOT);
+    }
+
+    private String toKoreanGroup(ExperienceGroup group) {
+        return group == ExperienceGroup.NARRATIVE ? "상세 서술형" : "스펙·증빙형";
     }
 }

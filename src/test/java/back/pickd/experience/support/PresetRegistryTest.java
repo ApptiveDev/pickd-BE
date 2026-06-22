@@ -1,11 +1,13 @@
 package back.pickd.experience.support;
 
 import back.pickd.experience.enums.ExperienceType;
+import back.pickd.global.infra.ai.dto.AiExperiencePresetSchema;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -112,5 +114,22 @@ class PresetRegistryTest {
                 ExperienceType.PROJECT,
                 Map.of()
         ).isEmpty());
+    }
+
+    @Test
+    @DisplayName("선택된 경험 유형만 AI Step2 프리셋 스키마로 변환한다")
+    void getAiPresetSchemas_returnsOnlySelectedTypes() {
+        List<AiExperiencePresetSchema> schemas = presetRegistry.getAiPresetSchemas(List.of(
+                ExperienceType.PROJECT,
+                ExperienceType.LANGUAGE,
+                ExperienceType.PROJECT
+        ));
+
+        assertEquals(2, schemas.size());
+        assertEquals("PROJECT", schemas.get(0).getExperienceType());
+        assertEquals("상세 서술형", schemas.get(0).getExperienceGroup());
+        assertEquals("project_name", schemas.get(0).getFields().get(0).getKey());
+        assertEquals("LANGUAGE", schemas.get(1).getExperienceType());
+        assertEquals("스펙·증빙형", schemas.get(1).getExperienceGroup());
     }
 }

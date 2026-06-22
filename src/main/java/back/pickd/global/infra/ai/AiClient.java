@@ -2,6 +2,7 @@ package back.pickd.global.infra.ai;
 
 import back.pickd.global.infra.ai.dto.AiExperienceMergeCheckRequest;
 import back.pickd.global.infra.ai.dto.AiExperienceMergeCheckResponse;
+import back.pickd.global.infra.ai.dto.AiExperiencePresetSchema;
 import back.pickd.global.infra.ai.dto.AiStep1Response;
 import back.pickd.global.infra.ai.dto.AiStep2Response;
 import back.pickd.global.infra.ai.dto.AiJobPostingResponse;
@@ -108,6 +109,43 @@ public class AiClient {
 
         return restClient.post()
                 .uri("/api/v1/extract-experiences/step2")
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(bodyBuilder.build())
+                .retrieve()
+                .body(AiStep2Response.class);
+    }
+
+    public AiStep2Response extractStep2V2ByUrl(
+            String resumeUrl,
+            List<AiStep1Response.ExperienceSummaryDto> selectedExperiences,
+            List<AiExperienceMergeCheckRequest.ExperiencePayload> existingExperiences,
+            List<AiExperiencePresetSchema> presetSchemas
+    ) {
+        MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
+        bodyBuilder.part("url", resumeUrl);
+
+        try {
+            bodyBuilder.part(
+                    "selected_experiences",
+                    objectMapper.writeValueAsString(selectedExperiences)
+            );
+            bodyBuilder.part(
+                    "existing_experiences",
+                    objectMapper.writeValueAsString(
+                            existingExperiences != null ? existingExperiences : List.of()
+                    )
+            );
+            bodyBuilder.part(
+                    "preset_schemas",
+                    objectMapper.writeValueAsString(presetSchemas)
+            );
+        } catch (JsonProcessingException e) {
+            log.error("Failed to serialize AI Step2 V2 request", e);
+            throw new RuntimeException("AI 분석 요청 중 직렬화 오류가 발생했습니다.", e);
+        }
+
+        return restClient.post()
+                .uri("/api/v1/extract-experiences/step2-v2")
                 .contentType(MediaType.MULTIPART_FORM_DATA)
                 .body(bodyBuilder.build())
                 .retrieve()

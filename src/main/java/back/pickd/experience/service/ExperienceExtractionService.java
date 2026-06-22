@@ -25,7 +25,6 @@ import back.pickd.experience.support.PresetRegistry;
 import back.pickd.user.entity.User;
 import back.pickd.user.service.UserService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -34,7 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ExperienceExtractionService {
@@ -66,11 +64,14 @@ public class ExperienceExtractionService {
         List<ExperienceTemp> temps = new ArrayList<>();
         if (aiResponse.getExperiences() != null) {
             for (AiStep1Response.ExperienceSummaryDto summary : aiResponse.getExperiences()) {
+                ExperienceType type = convertType(summary.getExperience_type());
+                ExperienceGroup group = convertGroup(summary.getExperience_group());
+                validateGroupType(group, type);
                 ExperienceTemp temp = ExperienceTemp.builder()
                         .user(user)
                         .experienceName(summary.getExperience_name())
-                        .experienceGroup(summary.getExperience_group())
-                        .experienceType(summary.getExperience_type())
+                        .experienceGroup(toKoreanGroup(group))
+                        .experienceType(type.getKoreanName())
                         .resumeUrl(resumeUrl)
                         .build();
                 temps.add(tempRepository.save(temp));
@@ -198,18 +199,28 @@ public class ExperienceExtractionService {
     }
 
     private ExperienceGroup convertGroup(String koreanGroup) {
-        if ("상세 서술형".equals(koreanGroup)) {
-            return ExperienceGroup.NARRATIVE;
-        }
-        return ExperienceGroup.SPEC;
+        return switch (koreanGroup) {
+            case "상세 서술형" -> ExperienceGroup.NARRATIVE;
+            case "스펙·증빙형" -> ExperienceGroup.SPEC;
+            default -> throw new IllegalArgumentException(
+                    "지원하지 않는 경험 그룹입니다: " + koreanGroup
+            );
+        };
     }
 
     private ExperienceType convertType(String koreanType) {
-        try {
-            return ExperienceType.fromKoreanName(koreanType);
-        } catch (IllegalArgumentException e) {
-            log.warn("Unknown experience type '{}', fallback to PROJECT", koreanType);
-            return ExperienceType.PROJECT;
+        return ExperienceType.fromKoreanName(koreanType);
+    }
+
+    private void validateGroupType(ExperienceGroup group, ExperienceType type) {
+        if (presetRegistry.getExperienceGroup(type) != group) {
+            throw new IllegalArgumentException(
+                    "경험 그룹과 유형이 일치하지 않습니다: " + type.getKoreanName()
+            );
         }
+    }
+
+    private String toKoreanGroup(ExperienceGroup group) {
+        return group == ExperienceGroup.NARRATIVE ? "상세 서술형" : "스펙·증빙형";
     }
 }
