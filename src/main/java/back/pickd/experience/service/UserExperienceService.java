@@ -73,15 +73,10 @@ public class UserExperienceService {
     }
 
     // 경험 목록 조회 (필터링 적용)
-    public List<ExperienceResponse> getExperiences(
-            String email,
-            ExperienceType type,
-            ExperienceGroup group,
-            String title
-    ) {
+    public List<ExperienceResponse> getExperiences(String email, ExperienceType type, ExperienceGroup group) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-        return userExperienceRepository.findByUserWithFilters(user, type, group, title)
+        return userExperienceRepository.findByUserWithFilters(user, type, group)
                 .stream()
                 .map(ExperienceResponse::new)
                 .collect(Collectors.toList());

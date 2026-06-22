@@ -30,12 +30,10 @@ public interface UserExperienceRepository extends JpaRepository<UserExperience, 
     @Query("select e from UserExperience e where e.user = :user " +
            "and (:type is null or e.experienceType = :type) " +
            "and (:group is null or e.experienceGroup = :group) " +
-           "and (:title is null or lower(e.title) like lower(concat('%', :title, '%'))) " +
            "order by e.createdAt desc")
     List<UserExperience> findByUserWithFilters(
         @Param("user") User user,
         @Param("type") ExperienceType type,
-        @Param("group") ExperienceGroup group,
-        @Param("title") String title
+        @Param("group") ExperienceGroup group
     );
 }
