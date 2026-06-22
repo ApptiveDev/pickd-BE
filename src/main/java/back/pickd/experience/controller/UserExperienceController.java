@@ -45,10 +45,9 @@ public class UserExperienceController {
     public ResponseEntity<List<ExperienceResponse>> getExperiences(
             Authentication authentication,
             @RequestParam(required = false) ExperienceType type,
-            @RequestParam(required = false) ExperienceGroup group,
-            @RequestParam(required = false) String title) {
+            @RequestParam(required = false) ExperienceGroup group) {
         return ResponseEntity.ok(
-                userExperienceService.getExperiences(authentication.getName(), type, group, title));
+                userExperienceService.getExperiences(authentication.getName(), type, group));
     }
 
     // 경험 수정
