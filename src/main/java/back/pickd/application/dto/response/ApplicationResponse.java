@@ -14,6 +14,7 @@ import java.util.List;
 public class ApplicationResponse {
 
     private Long id;
+    private Long noticeId;
     private List<TodoResponse> todos;
     private String company;
     private String jobTitle;
@@ -35,6 +36,7 @@ public class ApplicationResponse {
     public static ApplicationResponse from(Application app) {
         return ApplicationResponse.builder()
                 .id(app.getId())
+                .noticeId(app.getNotice() != null ? app.getNotice().getId() : null)
                 .todos(app.getTodos().stream().map(TodoResponse::from).toList())
                 .company(app.getCompany())
                 .jobTitle(app.getJobTitle())

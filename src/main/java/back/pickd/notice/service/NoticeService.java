@@ -1,12 +1,13 @@
 package back.pickd.notice.service;
 
+import back.pickd.application.entity.Application;
+import back.pickd.application.enums.ApplicationStatus;
+import back.pickd.application.repository.ApplicationRepository;
 import back.pickd.global.infra.ai.AiClient;
 import back.pickd.global.infra.ai.dto.*;
 import back.pickd.notice.entity.*;
 import back.pickd.notice.enums.*;
-
 import back.pickd.notice.repository.*;
-
 import back.pickd.user.entity.User;
 import back.pickd.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,7 @@ public class NoticeService {
     private final SectionPreferenceRepository sectionPreferenceRepository;
     private final NoticeProcessRepository noticeProcessRepository;
     private final ApplicationDocumentRepository applicationDocumentRepository;
+    private final ApplicationRepository applicationRepository;
     private final UserRepository userRepository;
 
     // URL 채용공고 분석 후 저장
@@ -138,6 +140,16 @@ public class NoticeService {
                 applicationDocumentRepository.save(document);
             }
         }
+
+        // AI 분석 공고 저장 후 Application 자동 생성
+        Application application = Application.builder()
+                .user(user)
+                .notice(savedNotice)
+                .company(savedNotice.getCompanyName())
+                .jobTitle(savedNotice.getNoticeName())
+                .status(ApplicationStatus.PREPARING)
+                .build();
+        applicationRepository.save(application);
 
         return savedNotice.getId();
     }

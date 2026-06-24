@@ -5,6 +5,8 @@ import back.pickd.application.entity.Application;
 import back.pickd.application.enums.ApplicationStatus;
 import back.pickd.application.repository.ApplicationRepository;
 import back.pickd.calendar.service.CalendarAsyncService;
+import back.pickd.notice.entity.Notice;
+import back.pickd.notice.repository.NoticeRepository;
 import back.pickd.user.entity.User;
 import back.pickd.user.service.UserService;
 import com.google.api.client.util.DateTime;
@@ -23,6 +25,7 @@ import java.util.List;
 public class ApplicationService {
 
     private final ApplicationRepository applicationRepository;
+    private final NoticeRepository noticeRepository;
     private final CalendarAsyncService calendarAsyncService;
     private final UserService userService;
 
@@ -37,8 +40,15 @@ public class ApplicationService {
         User user = userService.findByEmail(auth.getName());
         ApplicationStatus status = dto.getStatus();
 
+        Notice notice = null;
+        if (dto.getNoticeId() != null) {
+            notice = noticeRepository.findByIdAndUser(dto.getNoticeId(), user)
+                    .orElseThrow(() -> new IllegalArgumentException("공고를 찾을 수 없습니다."));
+        }
+
         Application app = Application.builder()
                 .user(user)
+                .notice(notice)
                 .company(dto.getCompany())
                 .jobTitle(dto.getJobTitle())
                 .position(dto.getPosition())

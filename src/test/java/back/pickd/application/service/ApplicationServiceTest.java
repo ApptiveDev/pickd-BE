@@ -6,6 +6,9 @@ import back.pickd.application.entity.Application;
 import back.pickd.application.enums.ApplicationStatus;
 import back.pickd.application.repository.ApplicationRepository;
 import back.pickd.calendar.service.CalendarAsyncService;
+import back.pickd.notice.entity.Notice;
+import back.pickd.notice.enums.JobCategory;
+import back.pickd.notice.repository.NoticeRepository;
 import back.pickd.user.entity.User;
 import back.pickd.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +36,7 @@ import static org.mockito.Mockito.*;
 class ApplicationServiceTest {
 
     @Mock ApplicationRepository applicationRepository;
+    @Mock NoticeRepository noticeRepository;
     @Mock CalendarAsyncService calendarAsyncService;
     @Mock UserService userService;
     @Mock Authentication authentication;
@@ -40,6 +44,7 @@ class ApplicationServiceTest {
     @InjectMocks ApplicationService applicationService;
 
     User user;
+    Notice notice;
 
     @BeforeEach
     void setUp() {
@@ -47,6 +52,15 @@ class ApplicationServiceTest {
                 .email("test@test.com")
                 .name("테스트유저")
                 .build();
+
+        notice = Notice.builder()
+                .user(user)
+                .companyName("카카오")
+                .noticeName("2026 상반기 공채")
+                .category(JobCategory.FULL_TIME)
+                .startedAt("2026-01-01")
+                .build();
+
         when(authentication.getName()).thenReturn("test@test.com");
         when(userService.findByEmail("test@test.com")).thenReturn(user);
     }
@@ -170,6 +184,45 @@ class ApplicationServiceTest {
 
             assertThat(captor.getValue().getUser()).isEqualTo(user);
             assertThat(captor.getValue().getCompany()).isEqualTo("카카오");
+        }
+
+        @Test
+        @DisplayName("noticeId가 있으면 Notice와 연결된 Application을 생성한다")
+        void createsApplicationLinkedToNotice() throws Exception {
+            ApplicationRequest req = buildRequest(ApplicationStatus.PREPARING);
+            req.setNoticeId(1L);
+            when(noticeRepository.findByIdAndUser(1L, user)).thenReturn(Optional.of(notice));
+            ArgumentCaptor<Application> captor = ArgumentCaptor.forClass(Application.class);
+            when(applicationRepository.save(captor.capture())).thenAnswer(inv -> inv.getArgument(0));
+
+            applicationService.addApplication(req, authentication);
+
+            assertThat(captor.getValue().getNotice()).isEqualTo(notice);
+        }
+
+        @Test
+        @DisplayName("noticeId가 null이면 notice 없이 Application을 생성한다")
+        void createsApplicationWithoutNotice() throws Exception {
+            ApplicationRequest req = buildRequest(ApplicationStatus.PREPARING);
+            // noticeId = null
+            ArgumentCaptor<Application> captor = ArgumentCaptor.forClass(Application.class);
+            when(applicationRepository.save(captor.capture())).thenAnswer(inv -> inv.getArgument(0));
+
+            applicationService.addApplication(req, authentication);
+
+            assertThat(captor.getValue().getNotice()).isNull();
+        }
+
+        @Test
+        @DisplayName("존재하지 않는 noticeId로 Application 생성 시 예외가 발생한다")
+        void throwsWhenNoticeNotFound() {
+            ApplicationRequest req = buildRequest(ApplicationStatus.PREPARING);
+            req.setNoticeId(99L);
+            when(noticeRepository.findByIdAndUser(99L, user)).thenReturn(Optional.empty());
+
+            assertThatThrownBy(() -> applicationService.addApplication(req, authentication))
+                    .isInstanceOf(IllegalArgumentException.class)
+                    .hasMessageContaining("공고를 찾을 수 없습니다");
         }
     }
 
