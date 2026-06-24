@@ -1,52 +1,49 @@
-package back.pickd.document.entity;
+package back.pickd.coverletter.entity;
 
 import back.pickd.application.entity.Application;
-import back.pickd.document.enums.DocumentStatus;
-import back.pickd.document.enums.DocumentType;
+import back.pickd.notice.notice.Notice;
 import back.pickd.user.entity.User;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "documents")
+@Table(name = "cover_letter_items")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
 @Builder
-public class Document {
+public class CoverLetterItem {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @JsonIgnore
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notice_id")
+    private Notice notice;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "application_id")
     private Application application;
 
-    private String title;
-    private String company;
+    @Column(name = "question", nullable = false, columnDefinition = "TEXT")
+    private String question;
 
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 20)
-    private DocumentType type;
+    @Column(name = "answer", columnDefinition = "TEXT")
+    private String answer;
 
-    @Enumerated(EnumType.STRING)
-    @Column(length = 20)
-    private DocumentStatus status;
+    @Column(name = "max_length")
+    private Integer maxLength;
 
-    private Integer progress;
-
-    @Column(length = 3000)
-    private String content;
+    @Column(name = "order_index", nullable = false)
+    @Builder.Default
+    private Integer orderIndex = 0;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -67,13 +64,10 @@ public class Document {
 
     // ── 도메인 메서드 ──────────────────────────────────────────────────────────
 
-    public void update(String title, String company, DocumentType type,
-                       DocumentStatus status, Integer progress, String content) {
-        this.title = title;
-        this.company = company;
-        this.type = type;
-        this.status = status;
-        this.progress = progress;
-        this.content = content;
+    public void update(String question, String answer, Integer maxLength, Integer orderIndex) {
+        this.question = question;
+        this.answer = answer;
+        this.maxLength = maxLength;
+        this.orderIndex = orderIndex;
     }
 }

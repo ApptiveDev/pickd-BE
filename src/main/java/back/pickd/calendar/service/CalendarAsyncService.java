@@ -31,13 +31,13 @@ public class CalendarAsyncService {
 
             switch (eventType) {
                 case "apply":
-                    app.setApplyEventId(createdEvent.getId());
+                    app.assignApplyEventId(createdEvent.getId());
                     break;
                 case "interview":
-                    app.setInterviewEventId(createdEvent.getId());
+                    app.assignInterviewEventId(createdEvent.getId());
                     break;
                 case "deadline":
-                    app.setDeadlineEventId(createdEvent.getId());
+                    app.assignDeadlineEventId(createdEvent.getId());
                     break;
                 default:
                     break;
@@ -85,7 +85,7 @@ public class CalendarAsyncService {
             Event createdEvent = calendarService.createTodoEvent(authentication, todo);
 
             if (createdEvent != null && createdEvent.getId() != null) {
-                todo.setCalendarEventId(createdEvent.getId());
+                todo.assignCalendarEventId(createdEvent.getId());
                 todoRepository.save(todo);
             }
         } catch (Exception e) {
