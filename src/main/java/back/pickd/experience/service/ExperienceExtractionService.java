@@ -21,6 +21,7 @@ import back.pickd.experience.enums.ExperienceType;
 import back.pickd.experience.enums.Status;
 import back.pickd.experience.repository.ExperienceTempRepository;
 import back.pickd.experience.repository.UserExperienceRepository;
+import back.pickd.experience.support.ExperienceConversionUtils;
 import back.pickd.experience.support.PresetRegistry;
 import back.pickd.user.entity.User;
 import back.pickd.user.service.UserService;
@@ -44,6 +45,7 @@ public class ExperienceExtractionService {
     private final UserService userService;
     private final ExperienceMergeService experienceMergeService;
     private final PresetRegistry presetRegistry;
+    private final ExperienceConversionUtils conversionUtils;
 
     /**
      * 1차 경험 후보 추출 및 임시 캐싱
@@ -64,9 +66,9 @@ public class ExperienceExtractionService {
         List<ExperienceTemp> temps = new ArrayList<>();
         if (aiResponse.getExperiences() != null) {
             for (AiStep1Response.ExperienceSummaryDto summary : aiResponse.getExperiences()) {
-                ExperienceType type = convertType(summary.getExperience_type());
-                ExperienceGroup group = convertGroup(summary.getExperience_group());
-                validateGroupType(group, type);
+                ExperienceType type = conversionUtils.convertType(summary.getExperience_type());
+                ExperienceGroup group = conversionUtils.convertGroup(summary.getExperience_group());
+                conversionUtils.validateGroupType(group, type);
                 ExperienceTemp temp = ExperienceTemp.builder()
                         .user(user)
                         .experienceName(summary.getExperience_name())
@@ -104,7 +106,7 @@ public class ExperienceExtractionService {
         List<AiStep1Response.ExperienceSummaryDto> selectedSummaries = temps.stream()
                 .map(t -> new AiStep1Response.ExperienceSummaryDto(
                         t.getExperienceName(),
-                        toKoreanGroup(t.getExperienceGroup()),
+                        conversionUtils.toKoreanGroup(t.getExperienceGroup()),
                         t.getExperienceType().getKoreanName()
                 ))
                 .collect(Collectors.toList());
@@ -120,8 +122,8 @@ public class ExperienceExtractionService {
         List<Conflict> mergeCandidates = new ArrayList<>();
         if (aiResponse.getExperiences() != null) {
             for (AiStep2Response.Step2ExperienceDto dto : aiResponse.getExperiences()) {
-                ExperienceGroup group = convertGroup(dto.getExperience_group());
-                ExperienceType type = convertType(dto.getExperience_type());
+                ExperienceGroup group = conversionUtils.convertGroup(dto.getExperience_group());
+                ExperienceType type = conversionUtils.convertType(dto.getExperience_type());
 
                 experienceMergeService.buildStep2MergeCandidate(user, dto, type, group)
                         .ifPresent(mergeCandidates::add);
@@ -198,29 +200,4 @@ public class ExperienceExtractionService {
         return new Step3Response(savedExperiences, skippedCount);
     }
 
-    private ExperienceGroup convertGroup(String koreanGroup) {
-        return switch (koreanGroup) {
-            case "상세 서술형" -> ExperienceGroup.NARRATIVE;
-            case "스펙·증빙형" -> ExperienceGroup.SPEC;
-            default -> throw new IllegalArgumentException(
-                    "지원하지 않는 경험 그룹입니다: " + koreanGroup
-            );
-        };
-    }
-
-    private ExperienceType convertType(String koreanType) {
-        return ExperienceType.fromKoreanName(koreanType);
-    }
-
-    private void validateGroupType(ExperienceGroup group, ExperienceType type) {
-        if (presetRegistry.getExperienceGroup(type) != group) {
-            throw new IllegalArgumentException(
-                    "경험 그룹과 유형이 일치하지 않습니다: " + type.getKoreanName()
-            );
-        }
-    }
-
-    private String toKoreanGroup(ExperienceGroup group) {
-        return group == ExperienceGroup.NARRATIVE ? "상세 서술형" : "스펙·증빙형";
-    }
 }
