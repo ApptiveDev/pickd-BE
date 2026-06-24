@@ -115,8 +115,8 @@ public class ExperienceExtractionService {
         // 3. AI 2차 분석 호출 (S3 CloudFront URL을 던져 2차 정밀 분석 수행)
         AiStep2Response aiResponse = aiClient.extractStep2ByUrl(resumeUrl, selectedSummaries, existingExperiences);
 
-        // 4. 2차 상세 분석 결과 영구 저장 및 파일 연동
-        List<UserExperience> savedExperiences = new ArrayList<>();
+        // 4. 2차 상세 분석 결과 빌드 (저장은 일괄 처리)
+        List<UserExperience> toSave = new ArrayList<>();
         List<Conflict> mergeCandidates = new ArrayList<>();
         if (aiResponse.getExperiences() != null) {
             for (AiStep2Response.Step2ExperienceDto dto : aiResponse.getExperiences()) {
@@ -141,7 +141,7 @@ public class ExperienceExtractionService {
                         .keywords(dto.getKeywords() != null ? dto.getKeywords() : new ArrayList<>())
                         .build();
 
-                // 첨부 파일 등록 (자소서 원본 출처 명시)
+                // 첨부 파일 등록 — CascadeType.ALL 로 saveAll 시 함께 저장됨
                 ExperienceFile resumeFile = ExperienceFile.builder()
                         .userExperience(userExperience)
                         .originalFilename("자기소개서 원본.pdf")
@@ -152,9 +152,12 @@ public class ExperienceExtractionService {
                         .build();
                 userExperience.updateFiles(List.of(resumeFile));
 
-                savedExperiences.add(experienceRepository.save(userExperience));
+                toSave.add(userExperience);
             }
         }
+
+        // 경험 + 파일 일괄 저장 (DB 왕복 1회)
+        List<UserExperience> savedExperiences = experienceRepository.saveAll(toSave);
 
         // 5. 사용 완료된 임시 캐시 데이터 일괄 삭제
         tempRepository.deleteByUser(user);
@@ -169,7 +172,7 @@ public class ExperienceExtractionService {
     public Step3Response confirmStep3(String email, Step3Request request) {
         User user = userService.findByEmail(email);
 
-        List<ExperienceResponse> savedExperiences = new ArrayList<>();
+        List<UserExperience> toSave = new ArrayList<>();
         int skippedCount = 0;
 
         for (Decision decision : request.getDecisions()) {
@@ -192,8 +195,12 @@ public class ExperienceExtractionService {
                     .keywords(decision.getDraft().getKeywords() != null ? decision.getDraft().getKeywords() : new ArrayList<>())
                     .build();
 
-            savedExperiences.add(new ExperienceResponse(experienceRepository.save(experience)));
+            toSave.add(experience);
         }
+
+        // 경험 일괄 저장 (DB 왕복 1회)
+        List<ExperienceResponse> savedExperiences = experienceRepository.saveAll(toSave)
+                .stream().map(ExperienceResponse::new).toList();
 
         return new Step3Response(savedExperiences, skippedCount);
     }
