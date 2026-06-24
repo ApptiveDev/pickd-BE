@@ -11,6 +11,8 @@ import java.time.LocalDateTime;
 @Setter
 public class ApplicationRequest {
 
+    private Long noticeId;
+
     private String company;
     private String jobTitle;
     private String position;

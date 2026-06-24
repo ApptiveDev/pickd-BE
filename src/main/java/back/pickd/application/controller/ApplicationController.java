@@ -1,7 +1,7 @@
 package back.pickd.application.controller;
 
 import back.pickd.application.dto.request.ApplicationRequest;
-import back.pickd.application.entity.Application;
+import back.pickd.application.dto.response.ApplicationResponse;
 import back.pickd.application.service.ApplicationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -17,7 +17,7 @@ public class ApplicationController {
     private final ApplicationService applicationService;
 
     @GetMapping
-    public List<Application> getAll(Authentication auth) {
+    public List<ApplicationResponse> getAll(Authentication auth) {
         return applicationService.getApplications(auth);
     }
 

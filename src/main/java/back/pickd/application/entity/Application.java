@@ -3,6 +3,7 @@ package back.pickd.application.entity;
 import back.pickd.application.enums.ApplicationStatus;
 import back.pickd.coverletter.entity.CoverLetterItem;
 import back.pickd.document.entity.Document;
+import back.pickd.notice.entity.Notice;
 import back.pickd.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
@@ -27,6 +28,10 @@ public class Application {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "notice_id")
+    private Notice notice;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -119,5 +124,9 @@ public class Application {
 
     public void clearDeadlineEventId() {
         this.deadlineEventId = null;
+    }
+
+    public void assignNotice(Notice notice) {
+        this.notice = notice;
     }
 }
