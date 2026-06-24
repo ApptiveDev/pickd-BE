@@ -5,7 +5,6 @@ import back.pickd.experience.entity.UserExperience;
 import back.pickd.experience.enums.ExperienceGroup;
 import back.pickd.experience.enums.ExperienceType;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -15,10 +14,6 @@ import java.util.Optional;
 
 @Repository
 public interface UserExperienceRepository extends JpaRepository<UserExperience, String> {
-
-    @Modifying
-    @Query("delete from UserExperience e where e.user = :user")
-    void deleteByUser(User user);
 
     // 유저의 경험 목록 조회 (최신순)
     List<UserExperience> findByUserOrderByCreatedAtDesc(User user);
