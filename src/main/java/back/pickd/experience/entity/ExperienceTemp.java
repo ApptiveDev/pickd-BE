@@ -38,6 +38,7 @@ public class ExperienceTemp {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String resumeUrl; // 1차 업로드 시 S3에 임시 저장된 자소서 원본 CloudFront URL
 
+    @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Builder
