@@ -70,8 +70,8 @@ public class ExperienceExtractionService {
                 ExperienceTemp temp = ExperienceTemp.builder()
                         .user(user)
                         .experienceName(summary.getExperience_name())
-                        .experienceGroup(toKoreanGroup(group))
-                        .experienceType(type.getKoreanName())
+                        .experienceGroup(group)
+                        .experienceType(type)
                         .resumeUrl(resumeUrl)
                         .build();
                 temps.add(tempRepository.save(temp));
@@ -104,8 +104,8 @@ public class ExperienceExtractionService {
         List<AiStep1Response.ExperienceSummaryDto> selectedSummaries = temps.stream()
                 .map(t -> new AiStep1Response.ExperienceSummaryDto(
                         t.getExperienceName(),
-                        t.getExperienceGroup(),
-                        t.getExperienceType()
+                        toKoreanGroup(t.getExperienceGroup()),
+                        t.getExperienceType().getKoreanName()
                 ))
                 .collect(Collectors.toList());
 

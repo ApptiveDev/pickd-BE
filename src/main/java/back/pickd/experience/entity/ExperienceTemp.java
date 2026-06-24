@@ -1,5 +1,7 @@
 package back.pickd.experience.entity;
 
+import back.pickd.experience.enums.ExperienceGroup;
+import back.pickd.experience.enums.ExperienceType;
 import back.pickd.user.entity.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -25,11 +27,13 @@ public class ExperienceTemp {
     @Column(nullable = false)
     private String experienceName;
 
-    @Column(nullable = false)
-    private String experienceGroup; // 예: "상세 서술형", "스펙·증빙형"
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private ExperienceGroup experienceGroup;
 
-    @Column(nullable = false)
-    private String experienceType;  // 예: "프로젝트", "어학", "인턴"
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 50)
+    private ExperienceType experienceType;
 
     @Column(nullable = false, columnDefinition = "TEXT")
     private String resumeUrl; // 1차 업로드 시 S3에 임시 저장된 자소서 원본 CloudFront URL
@@ -37,7 +41,7 @@ public class ExperienceTemp {
     private LocalDateTime createdAt;
 
     @Builder
-    public ExperienceTemp(User user, String experienceName, String experienceGroup, String experienceType, String resumeUrl) {
+    public ExperienceTemp(User user, String experienceName, ExperienceGroup experienceGroup, ExperienceType experienceType, String resumeUrl) {
         this.user = user;
         this.experienceName = experienceName;
         this.experienceGroup = experienceGroup;

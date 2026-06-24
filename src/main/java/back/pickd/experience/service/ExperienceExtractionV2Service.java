@@ -292,8 +292,8 @@ public class ExperienceExtractionV2Service {
     }
 
     private SelectedExperience toSelectedExperience(ExperienceTemp temp) {
-        ExperienceType type = convertType(temp.getExperienceType());
-        ExperienceGroup group = convertGroup(temp.getExperienceGroup());
+        ExperienceType type = temp.getExperienceType();
+        ExperienceGroup group = temp.getExperienceGroup();
         validateGroupType(group, type);
         return new SelectedExperience(temp, type, group);
     }
