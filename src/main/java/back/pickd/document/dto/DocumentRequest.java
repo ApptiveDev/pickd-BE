@@ -14,7 +14,7 @@ public class DocumentRequest {
     private String company;
 
     @NotNull
-    private DocumentType type;      // RESUME, PORTFOLIO, COVER_LETTER, ETC
+    private DocumentType type;      // RESUME, PORTFOLIO, ETC
 
     private DocumentStatus status;  // nullable
 

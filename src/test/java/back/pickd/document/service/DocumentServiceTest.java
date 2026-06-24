@@ -57,7 +57,7 @@ class DocumentServiceTest {
         DocumentRequest req = new DocumentRequest();
         req.setTitle("자기소개서");
         req.setCompany("카카오");
-        req.setType(DocumentType.COVER_LETTER);
+        req.setType(DocumentType.RESUME);
         req.setStatus(DocumentStatus.DRAFT);
         req.setProgress(30);
         req.setContent("내용...");
@@ -70,7 +70,7 @@ class DocumentServiceTest {
                 .application(application)
                 .title("자기소개서")
                 .company("카카오")
-                .type(DocumentType.COVER_LETTER)
+                .type(DocumentType.RESUME)
                 .status(DocumentStatus.DRAFT)
                 .progress(30)
                 .content("내용...")
@@ -134,7 +134,7 @@ class DocumentServiceTest {
             Document saved = captor.getValue();
             assertThat(saved.getUser()).isEqualTo(user);
             assertThat(saved.getApplication()).isEqualTo(application);
-            assertThat(saved.getType()).isEqualTo(DocumentType.COVER_LETTER);
+            assertThat(saved.getType()).isEqualTo(DocumentType.RESUME);
         }
 
         @Test
