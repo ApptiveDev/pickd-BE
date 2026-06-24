@@ -6,8 +6,8 @@ import back.pickd.coverletter.dto.request.CoverLetterItemRequest;
 import back.pickd.coverletter.dto.response.CoverLetterItemResponse;
 import back.pickd.coverletter.entity.CoverLetterItem;
 import back.pickd.coverletter.repository.CoverLetterItemRepository;
-import back.pickd.notice.notice.Notice;
-import back.pickd.notice.notice.NoticeRepository;
+import back.pickd.notice.entity.Notice;
+import back.pickd.notice.repository.NoticeRepository;
 import back.pickd.user.entity.User;
 import back.pickd.user.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -71,6 +71,7 @@ public class CoverLetterItemService {
                 .answer(dto.getAnswer())
                 .maxLength(dto.getMaxLength())
                 .orderIndex(dto.getOrderIndex() != null ? dto.getOrderIndex() : 0)
+                .aiGenerated(dto.isAiGenerated())
                 .build();
 
         return CoverLetterItemResponse.from(coverLetterItemRepository.save(item));

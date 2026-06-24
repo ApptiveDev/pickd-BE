@@ -1,8 +1,1 @@
-package back.pickd.notice.process;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
-
-@Repository
-public interface NoticeProcessRepository extends JpaRepository<NoticeProcess, Long> {
-}
+// MOVED: notice/entity/ 또는 notice/repository/ 로 이동됨
