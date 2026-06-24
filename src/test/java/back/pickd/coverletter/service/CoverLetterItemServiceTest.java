@@ -54,7 +54,7 @@ class CoverLetterItemServiceTest {
                 .user(user)
                 .companyName("카카오")
                 .noticeName("2026 상반기 공채")
-                .category(JobCategory.BACKEND)
+                .category(JobCategory.FULL_TIME)
                 .startedAt("2026-01-01")
                 .build();
 

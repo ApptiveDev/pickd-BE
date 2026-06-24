@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>경험 추출 Local E2E</title>
+    <style>
+        :root {
+            color-scheme: light;
+            --bg: #f4f6f8;
+            --card: #ffffff;
+            --line: #d8dee6;
+            --text: #18212f;
+            --muted: #617084;
+            --primary: #275efe;
+            --danger: #c9362b;
+            --ok: #16794b;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--text);
+            background: var(--bg);
+        }
+        header {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--line);
+            background: rgba(255, 255, 255, .96);
+        }
+        main {
+            display: grid;
+            grid-template-columns: minmax(0, 1.35fr) minmax(360px, .65fr);
+            gap: 20px;
+            max-width: 1500px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .flow, .side { display: grid; gap: 18px; align-content: start; }
+        .card {
+            padding: 20px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--card);
+            box-shadow: 0 4px 14px rgba(25, 35, 50, .04);
+        }
+        h1, h2, h3 { margin: 0 0 12px; }
+        h1 { font-size: 20px; }
+        h2 { font-size: 18px; }
+        h3 { font-size: 15px; }
+        p { margin: 6px 0; color: var(--muted); }
+        label { display: grid; gap: 6px; color: var(--muted); font-size: 13px; }
+        input, select, textarea, button { font: inherit; }
+        input[type="text"], select, textarea {
+            width: 100%;
+            padding: 10px 11px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: var(--text);
+            background: #fff;
+        }
+        textarea { min-height: 100px; resize: vertical; }
+        button, .button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 9px 13px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            color: #fff;
+            background: var(--primary);
+            cursor: pointer;
+            text-decoration: none;
+        }
+        button.secondary { color: var(--text); border-color: var(--line); background: #fff; }
+        button.danger { background: var(--danger); }
+        button:disabled { opacity: .5; cursor: not-allowed; }
+        .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+        .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+        .list { display: grid; gap: 10px; margin-top: 14px; }
+        .item {
+            padding: 12px;
+            border: 1px solid var(--line);
+            border-radius: 9px;
+            background: #fbfcfd;
+        }
+        .item-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+        .meta { color: var(--muted); font-size: 12px; word-break: break-all; }
+        .badge {
+            display: inline-block;
+            padding: 3px 7px;
+            border-radius: 999px;
+            color: #24415e;
+            background: #e8f0f8;
+            font-size: 11px;
+        }
+        .selected-order { margin: 10px 0 0; padding-left: 24px; }
+        .selected-order li { margin: 7px 0; }
+        .mini { padding: 3px 7px; color: var(--text); border-color: var(--line); background: #fff; }
+        pre {
+            max-height: 420px;
+            margin: 10px 0 0;
+            padding: 12px;
+            overflow: auto;
+            border-radius: 8px;
+            color: #dce8f5;
+            background: #111923;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        .log-entry { padding: 12px 0; border-bottom: 1px solid var(--line); }
+        .log-ok { color: var(--ok); }
+        .log-error { color: var(--danger); }
+        .draft-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 10px; }
+        .attribute-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+        .empty { padding: 16px; color: var(--muted); text-align: center; border: 1px dashed var(--line); border-radius: 8px; }
+        .status-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--danger); }
+        .status-dot.on { background: var(--ok); }
+        .login { display: flex; align-items: center; gap: 9px; }
+        @media (max-width: 980px) {
+            main { grid-template-columns: 1fr; }
+            .grid-2, .attribute-fields { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+<header>
+    <div>
+        <h1>경험 추출 Local E2E</h1>
+        <div class="meta">Step1 → Step2 V2 → Step3 V2 / 실제 S3·Python·OpenAI 호출</div>
+    </div>
+    <div class="login">
+        <span id="auth-dot" class="status-dot" th:classappend="${authenticated} ? ' on' : ''"></span>
+        <span id="auth-text" th:text="${authenticated} ? ${userEmail} : '로그인 필요'">로그인 필요</span>
+        <a class="button" href="/oauth2/authorization/google">Google 로그인</a>
+        <a class="button" href="/logout" style="background:#5d6878">로그아웃</a>
+    </div>
+</header>
+
+<main>
+    <section class="flow">
+        <article class="card">
+            <h2>1. Step1 후보 추출</h2>
+            <p>PDF 입력은 요청 후에도 브라우저에 유지됩니다. 같은 파일로 Step1을 다시 실행할 수 있습니다.</p>
+            <label>
+                분석할 PDF
+                <input id="pdf-file" type="file" accept="application/pdf">
+            </label>
+            <div class="actions">
+                <button id="step1-button" type="button">Step1 실행</button>
+            </div>
+            <div id="step1-candidates" class="list">
+                <div class="empty">아직 추출한 후보가 없습니다.</div>
+            </div>
+            <h3 style="margin-top:16px">Step2 전달 순서</h3>
+            <ol id="selected-order" class="selected-order"></ol>
+        </article>
+
+        <article class="card">
+            <h2>2. Step2 상세 추출·중복 분류</h2>
+            <p>위 순서대로 배치 내부 중복 우선순위를 적용합니다.</p>
+            <div class="actions">
+                <button id="step2-button" type="button">Step2 V2 실행</button>
+            </div>
+            <div id="step2-result" class="list">
+                <div class="empty">Step2 결과가 여기에 표시됩니다.</div>
+            </div>
+        </article>
+
+        <article class="card">
+            <h2>3. Step3 최종 선택</h2>
+            <p>기본 선택은 없습니다. 모든 그룹에서 하나 이상의 기존 경험 또는 Draft를 선택해야 합니다.</p>
+            <div class="actions">
+                <button id="load-pending-button" class="secondary" type="button">
+                    미처리 중복 불러오기
+                </button>
+                <label id="pending-batch-label" style="display:none; min-width:320px">
+                    미처리 batch
+                    <select id="pending-batch-select"></select>
+                </label>
+            </div>
+            <form id="step3-form">
+                <div id="step3-groups" class="list">
+                    <div class="empty">Step2 중복 그룹이 생성되면 선택 항목이 표시됩니다.</div>
+                </div>
+                <div class="actions">
+                    <button id="step3-button" type="submit" disabled>Step3 V2 실행</button>
+                </div>
+            </form>
+        </article>
+
+        <article class="card">
+            <h2>수기 기준 경험 저장</h2>
+            <p>PresetRegistry의 13개 유형과 필드를 그대로 사용합니다.</p>
+            <form id="manual-form">
+                <div class="grid-2">
+                    <label>
+                        경험 유형
+                        <select id="manual-type" required></select>
+                    </label>
+                    <label>
+                        경험 그룹
+                        <input id="manual-group" type="text" readonly>
+                    </label>
+                    <label>
+                        제목
+                        <input id="manual-title" type="text" required>
+                    </label>
+                    <label>
+                        상태
+                        <select id="manual-status">
+                            <option value="COMPLETED">COMPLETED</option>
+                            <option value="IN_PROGRESS">IN_PROGRESS</option>
+                        </select>
+                    </label>
+                </div>
+                <label style="margin-top:12px">
+                    본문
+                    <textarea id="manual-content"></textarea>
+                </label>
+                <label style="margin-top:12px">
+                    키워드 (쉼표 구분)
+                    <input id="manual-keywords" type="text" placeholder="문제 해결, 협업, 실행력">
+                </label>
+                <h3 style="margin-top:16px">Preset attributes</h3>
+                <div id="manual-attributes" class="attribute-fields"></div>
+                <label style="display:flex; grid-template-columns:auto 1fr; align-items:center; margin-top:14px">
+                    <input id="manual-force" type="checkbox" checked>
+                    forceCreate로 중복 검사 없이 기준 데이터 저장
+                </label>
+                <div class="actions">
+                    <button type="submit">수기 경험 저장</button>
+                </div>
+            </form>
+        </article>
+    </section>
+
+    <aside class="side">
+        <article class="card">
+            <div class="item-head">
+                <div>
+                    <h2>현재 사용자 DB 상태</h2>
+                    <p>UserExperience, Temp, Batch, Group, Draft</p>
+                </div>
+                <button id="refresh-state" class="secondary" type="button">새로고침</button>
+            </div>
+            <div id="db-state">
+                <div class="empty">로그인 후 조회할 수 있습니다.</div>
+            </div>
+        </article>
+
+        <article class="card">
+            <div class="item-head">
+                <div>
+                    <h2>API 로그</h2>
+                    <p>요청·응답·상태 코드·처리 시간</p>
+                </div>
+                <button id="clear-log" class="secondary" type="button">비우기</button>
+            </div>
+            <div id="api-log"></div>
+        </article>
+    </aside>
+</main>
+
+<script th:inline="javascript">
+    const presetDefinitions = JSON.parse(/*[[${presetDefinitionsJson}]]*/ '[]');
+    const state = {
+        step1Candidates: [],
+        selectedTempIds: [],
+        duplicateBatchId: null,
+        duplicateGroups: [],
+        pendingBatches: []
+    };
+
+    const byId = id => document.getElementById(id);
+    const escapeHtml = value => String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    const pretty = value => JSON.stringify(value, null, 2);
+
+    async function apiCall(label, url, options = {}, requestDisplay = null) {
+        const startedAt = performance.now();
+        let response;
+        let payload;
+        try {
+            response = await fetch(url, { credentials: "same-origin", ...options });
+            const text = await response.text();
+            try {
+                payload = text ? JSON.parse(text) : null;
+            } catch {
+                payload = text;
+            }
+        } catch (error) {
+            addLog(label, requestDisplay, { networkError: error.message }, 0,
+                Math.round(performance.now() - startedAt));
+            throw error;
+        }
+
+        addLog(label, requestDisplay, payload, response.status,
+            Math.round(performance.now() - startedAt));
+        if (!response.ok) {
+            throw new Error(payload?.message || payload?.detail || `HTTP ${response.status}`);
+        }
+        return payload;
+    }
+
+    function addLog(label, request, response, status, elapsedMs) {
+        const entry = document.createElement("div");
+        entry.className = "log-entry";
+        const statusClass = status >= 200 && status < 300 ? "log-ok" : "log-error";
+        entry.innerHTML = `
+            <div class="item-head">
+                <strong>${escapeHtml(label)}</strong>
+                <span class="${statusClass}">HTTP ${status || "NETWORK"} · ${elapsedMs}ms</span>
+            </div>
+            <details>
+                <summary>요청</summary>
+                <pre>${escapeHtml(pretty(request))}</pre>
+            </details>
+            <details open>
+                <summary>응답</summary>
+                <pre>${escapeHtml(pretty(response))}</pre>
+            </details>`;
+        byId("api-log").prepend(entry);
+    }
+
+    async function loadAuth() {
+        try {
+            const user = await apiCall("로그인 상태", "/api/user", {}, null);
+            byId("auth-dot").classList.add("on");
+            byId("auth-text").textContent = user.email || user.name || "로그인됨";
+            await refreshState();
+        } catch {
+            byId("auth-dot").classList.remove("on");
+            byId("auth-text").textContent = "로그인 필요";
+        }
+    }
+
+    function renderStep1() {
+        const container = byId("step1-candidates");
+        if (!state.step1Candidates.length) {
+            container.innerHTML = '<div class="empty">추출 후보가 없습니다.</div>';
+            return;
+        }
+        container.innerHTML = state.step1Candidates.map(candidate => `
+            <label class="item" style="display:flex; grid-template-columns:auto 1fr; align-items:start">
+                <input type="checkbox" data-temp-id="${candidate.id}"
+                    ${state.selectedTempIds.includes(candidate.id) ? "checked" : ""}>
+                <span>
+                    <strong>${escapeHtml(candidate.experienceName)}</strong>
+                    <span class="badge">${escapeHtml(candidate.experienceType)}</span>
+                    <span class="badge">${escapeHtml(candidate.experienceGroup)}</span>
+                    <span class="meta">temp ID: ${candidate.id}</span>
+                </span>
+            </label>`).join("");
+        container.querySelectorAll("[data-temp-id]").forEach(input => {
+            input.addEventListener("change", () => {
+                const id = Number(input.dataset.tempId);
+                if (input.checked && !state.selectedTempIds.includes(id)) {
+                    state.selectedTempIds.push(id);
+                } else if (!input.checked) {
+                    state.selectedTempIds = state.selectedTempIds.filter(value => value !== id);
+                }
+                renderSelectedOrder();
+            });
+        });
+        renderSelectedOrder();
+    }
+
+    function renderSelectedOrder() {
+        const order = byId("selected-order");
+        order.innerHTML = state.selectedTempIds.map((id, index) => {
+            const candidate = state.step1Candidates.find(item => item.id === id);
+            return `<li>
+                ${escapeHtml(candidate?.experienceName || id)}
+                <button class="mini" type="button" data-move-up="${index}" ${index === 0 ? "disabled" : ""}>↑</button>
+                <button class="mini" type="button" data-move-down="${index}"
+                    ${index === state.selectedTempIds.length - 1 ? "disabled" : ""}>↓</button>
+            </li>`;
+        }).join("");
+        order.querySelectorAll("[data-move-up]").forEach(button =>
+            button.addEventListener("click", () => moveSelected(Number(button.dataset.moveUp), -1)));
+        order.querySelectorAll("[data-move-down]").forEach(button =>
+            button.addEventListener("click", () => moveSelected(Number(button.dataset.moveDown), 1)));
+    }
+
+    function moveSelected(index, offset) {
+        const target = index + offset;
+        if (target < 0 || target >= state.selectedTempIds.length) return;
+        [state.selectedTempIds[index], state.selectedTempIds[target]] =
+            [state.selectedTempIds[target], state.selectedTempIds[index]];
+        renderSelectedOrder();
+    }
+
+    byId("step1-button").addEventListener("click", async () => {
+        const file = byId("pdf-file").files[0];
+        if (!file) return alert("PDF 파일을 선택하세요.");
+        const form = new FormData();
+        form.append("file", file);
+        try {
+            const result = await apiCall(
+                "POST Step1",
+                "/api/experiences/extract/step1",
+                { method: "POST", body: form },
+                { file: { name: file.name, type: file.type, size: file.size } }
+            );
+            state.step1Candidates = result;
+            state.selectedTempIds = [];
+            state.duplicateBatchId = null;
+            state.duplicateGroups = [];
+            renderStep1();
+            renderStep3();
+            await refreshState();
+        } catch (error) {
+            alert(error.message);
+        }
+    });
+
+    byId("step2-button").addEventListener("click", async () => {
+        if (!state.selectedTempIds.length) return alert("Step2에 전달할 후보를 선택하세요.");
+        const request = { selectedTempIds: state.selectedTempIds };
+        try {
+            const result = await apiCall(
+                "POST Step2 V2",
+                "/api/v2/experiences/extract/step2",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(request)
+                },
+                request
+            );
+            state.duplicateBatchId = result.duplicateBatchId;
+            state.duplicateGroups = result.duplicateGroups || [];
+            renderStep2(result);
+            renderStep3();
+            await refreshState();
+        } catch (error) {
+            alert(error.message);
+        }
+    });
+
+    function renderStep2(result) {
+        const saved = result.savedExperiences || [];
+        const groups = result.duplicateGroups || [];
+        byId("step2-result").innerHTML = `
+            <div class="item">
+                <strong>즉시 저장 ${saved.length}건</strong>
+                ${saved.map(item => `<div>${escapeHtml(item.title)} <span class="meta">${item.id}</span></div>`).join("") || '<div class="meta">없음</div>'}
+            </div>
+            <div class="item">
+                <strong>중복 그룹 ${groups.length}건</strong>
+                <div class="meta">batch: ${escapeHtml(result.duplicateBatchId || "없음")}</div>
+            </div>`;
+    }
+
+    function renderStep3() {
+        const container = byId("step3-groups");
+        if (!state.duplicateGroups.length) {
+            container.innerHTML = '<div class="empty">처리할 중복 그룹이 없습니다.</div>';
+            byId("step3-button").disabled = true;
+            return;
+        }
+        container.innerHTML = state.duplicateGroups.map((group, groupIndex) => `
+            <section class="item" data-group="${group.groupId}">
+                <h3>그룹 ${groupIndex + 1}</h3>
+                <div class="meta">${escapeHtml(group.groupId)}</div>
+                <div class="draft-grid">
+                    ${group.items.map(item => `
+                        <label class="item">
+                            <span style="display:flex; gap:8px; align-items:center">
+                                <input type="checkbox" name="group-${group.groupId}" value="${item.itemId}">
+                                <strong>${escapeHtml(item.source)}</strong>
+                                ${item.similarity == null ? "" : `<span class="badge">similarity ${item.similarity}</span>`}
+                            </span>
+                            <span>${escapeHtml(item.experience.title)}</span>
+                            <span class="meta">${escapeHtml(item.experience.experienceType)} / ${escapeHtml(item.itemId)}</span>
+                            <details>
+                                <summary>상세 데이터</summary>
+                                <pre>${escapeHtml(pretty(item.experience))}</pre>
+                            </details>
+                        </label>`).join("")}
+                </div>
+            </section>`).join("");
+        byId("step3-button").disabled = false;
+    }
+
+    async function loadPendingDuplicates(showEmptyAlert = true) {
+        try {
+            const result = await apiCall(
+                "GET 미처리 중복",
+                "/api/v2/experiences/extract/duplicates/pending",
+                {},
+                null
+            );
+            state.pendingBatches = result.batches || [];
+            const label = byId("pending-batch-label");
+            const select = byId("pending-batch-select");
+
+            if (!state.pendingBatches.length) {
+                label.style.display = "none";
+                if (showEmptyAlert) alert("미처리 중복 batch가 없습니다.");
+                return;
+            }
+
+            select.innerHTML = state.pendingBatches.map(batch =>
+                `<option value="${batch.duplicateBatchId}">
+                    ${escapeHtml(batch.createdAt)} · ${batch.duplicateGroups.length}개 그룹
+                </option>`
+            ).join("");
+            label.style.display = "grid";
+            applyPendingBatch(select.value);
+        } catch (error) {
+            if (showEmptyAlert) alert(error.message);
+        }
+    }
+
+    function applyPendingBatch(batchId) {
+        const batch = state.pendingBatches.find(
+            item => item.duplicateBatchId === batchId
+        );
+        if (!batch) return;
+        state.duplicateBatchId = batch.duplicateBatchId;
+        state.duplicateGroups = batch.duplicateGroups;
+        renderStep3();
+    }
+
+    byId("step3-form").addEventListener("submit", async event => {
+        event.preventDefault();
+        const groups = state.duplicateGroups.map(group => ({
+            groupId: group.groupId,
+            selectedItemIds: [...document.querySelectorAll(`input[name="group-${group.groupId}"]:checked`)]
+                .map(input => input.value)
+        }));
+        if (groups.some(group => group.selectedItemIds.length === 0)) {
+            return alert("각 중복 그룹에서 하나 이상 선택하세요.");
+        }
+        const request = { duplicateBatchId: state.duplicateBatchId, groups };
+        try {
+            await apiCall(
+                "POST Step3 V2",
+                "/api/v2/experiences/extract/step3",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(request)
+                },
+                request
+            );
+            state.duplicateBatchId = null;
+            state.duplicateGroups = [];
+            renderStep3();
+            await refreshState();
+            await loadPendingDuplicates(false);
+        } catch (error) {
+            alert(error.message);
+        }
+    });
+
+    function initManualForm() {
+        const select = byId("manual-type");
+        select.innerHTML = presetDefinitions.map(preset =>
+            `<option value="${preset.type}">${escapeHtml(preset.koreanName)} (${preset.type})</option>`
+        ).join("");
+        select.addEventListener("change", renderManualPreset);
+        renderManualPreset();
+    }
+
+    function renderManualPreset() {
+        const preset = presetDefinitions.find(item => item.type === byId("manual-type").value)
+            || presetDefinitions[0];
+        if (!preset) return;
+        byId("manual-group").value = preset.group;
+        byId("manual-attributes").innerHTML = preset.fields.map(field => `
+            <label>
+                ${escapeHtml(field.label)}
+                <input type="text" data-attribute-key="${escapeHtml(field.key)}">
+                <span class="meta">${escapeHtml(field.key)}</span>
+            </label>`).join("");
+    }
+
+    byId("manual-form").addEventListener("submit", async event => {
+        event.preventDefault();
+        const attributes = {};
+        document.querySelectorAll("[data-attribute-key]").forEach(input => {
+            if (input.value.trim()) attributes[input.dataset.attributeKey] = input.value.trim();
+        });
+        const request = {
+            title: byId("manual-title").value.trim(),
+            experienceType: byId("manual-type").value,
+            experienceGroup: byId("manual-group").value,
+            status: byId("manual-status").value,
+            documentContent: byId("manual-content").value,
+            attributes,
+            keywords: byId("manual-keywords").value.split(",").map(value => value.trim()).filter(Boolean),
+            links: [],
+            forceCreate: byId("manual-force").checked
+        };
+        try {
+            await apiCall(
+                "POST 수기 경험",
+                "/api/experiences",
+                {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(request)
+                },
+                request
+            );
+            await refreshState();
+        } catch (error) {
+            alert(error.message);
+        }
+    });
+
+    async function refreshState() {
+        try {
+            const result = await apiCall(
+                "GET DB 상태",
+                "/internal/experience-extraction-test/state",
+                {},
+                null
+            );
+            renderDbState(result);
+        } catch (error) {
+            byId("db-state").innerHTML = `<div class="empty">${escapeHtml(error.message)}</div>`;
+        }
+    }
+
+    function renderDbState(result) {
+        byId("db-state").innerHTML = `
+            <div class="item">
+                <strong>${escapeHtml(result.userEmail)}</strong>
+                <div class="meta">
+                    experiences ${result.experiences.length} · temps ${result.temps.length} · batches ${result.batches.length}
+                </div>
+            </div>
+            <details open>
+                <summary>저장 경험 (${result.experiences.length})</summary>
+                <div class="list">
+                    ${result.experiences.map(exp => `
+                        <div class="item">
+                            <div class="item-head">
+                                <strong>${escapeHtml(exp.title)}</strong>
+                                <button class="danger mini" type="button" data-delete-experience="${exp.id}">삭제</button>
+                            </div>
+                            <div class="meta">${escapeHtml(exp.experienceType)} / ${escapeHtml(exp.id)}</div>
+                            <pre>${escapeHtml(pretty(exp))}</pre>
+                        </div>`).join("") || '<div class="empty">없음</div>'}
+                </div>
+            </details>
+            <details>
+                <summary>Temp (${result.temps.length})</summary>
+                <pre>${escapeHtml(pretty(result.temps))}</pre>
+            </details>
+            <details open>
+                <summary>Batch·Group·Draft (${result.batches.length})</summary>
+                <pre>${escapeHtml(pretty(result.batches))}</pre>
+            </details>`;
+        byId("db-state").querySelectorAll("[data-delete-experience]").forEach(button => {
+            button.addEventListener("click", async () => {
+                if (!confirm("이 경험을 삭제할까요?")) return;
+                try {
+                    await apiCall(
+                        "DELETE 경험",
+                        `/api/experiences/${button.dataset.deleteExperience}`,
+                        { method: "DELETE" },
+                        { id: button.dataset.deleteExperience }
+                    );
+                    await refreshState();
+                } catch (error) {
+                    alert(error.message);
+                }
+            });
+        });
+    }
+
+    byId("refresh-state").addEventListener("click", refreshState);
+    byId("load-pending-button").addEventListener(
+        "click",
+        () => loadPendingDuplicates(true)
+    );
+    byId("pending-batch-select").addEventListener(
+        "change",
+        event => applyPendingBatch(event.target.value)
+    );
+    byId("clear-log").addEventListener("click", () => byId("api-log").innerHTML = "");
+
+    initManualForm();
+    renderSelectedOrder();
+    loadAuth();
+</script>
+</body>
+</html>
