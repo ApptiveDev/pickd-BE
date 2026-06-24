@@ -197,8 +197,8 @@ class ExperienceExtractionTestControllerIntegrationTest {
         return ExperienceTemp.builder()
                 .user(user)
                 .experienceName(name)
-                .experienceGroup("상세 서술형")
-                .experienceType("프로젝트")
+                .experienceGroup(ExperienceGroup.NARRATIVE)
+                .experienceType(ExperienceType.PROJECT)
                 .resumeUrl("https://cdn.example.com/" + name + ".pdf")
                 .build();
     }
