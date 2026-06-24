@@ -1,13 +1,11 @@
 package back.pickd.application.controller;
 
-import back.pickd.application.entity.Application;
-import back.pickd.application.repository.ApplicationRepository;
 import back.pickd.application.dto.request.ApplicationRequest;
+import back.pickd.application.entity.Application;
 import back.pickd.application.service.ApplicationService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.Sort;
-import org.springframework.web.bind.annotation.*;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -15,12 +13,12 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/api/application")
 public class ApplicationController {
+
     private final ApplicationService applicationService;
-    private final ApplicationRepository applicationRepository;
 
     @GetMapping
-    public List<Application> getAll() {
-        return applicationRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+    public List<Application> getAll(Authentication auth) {
+        return applicationService.getApplications(auth);
     }
 
     @PostMapping
