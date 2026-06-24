@@ -77,7 +77,8 @@ public class ExperienceExtractionV2Service {
                 selectedExperiences
         );
 
-        List<UserExperience> savedExperiences = new ArrayList<>();
+        // UUID를 @PrePersist 이전에 수동 할당 → 루프 내 즉시 참조 가능, save() 지연 가능
+        List<UserExperience> toSave = new ArrayList<>();
         Map<Integer, UserExperience> savedByTargetIndex = new HashMap<>();
         Map<String, ExperienceDuplicateGroup> groupsByExistingId = new LinkedHashMap<>();
         ExperienceExtractionBatch batch = null;
@@ -87,15 +88,15 @@ public class ExperienceExtractionV2Service {
             SelectedExperience selected = selectedExperiences.get(index);
 
             if (!dto.isNeeds_merge()) {
-                UserExperience saved = saveExtractedExperience(
+                UserExperience experience = buildExtractedExperience(
                         user,
                         dto,
                         selected.type(),
                         selected.group(),
                         resumeUrl
                 );
-                savedExperiences.add(saved);
-                savedByTargetIndex.put(index, saved);
+                toSave.add(experience);
+                savedByTargetIndex.put(index, experience);
                 continue;
             }
 
@@ -128,6 +129,9 @@ public class ExperienceExtractionV2Service {
                     .similarity(dto.getMerge_similarity())
                     .build());
         }
+
+        // 경험 + 파일 일괄 저장 (CascadeType.ALL 로 ExperienceFile 함께 INSERT)
+        List<UserExperience> savedExperiences = experienceRepository.saveAll(toSave);
 
         if (batch != null) {
             batchRepository.save(batch);
@@ -198,10 +202,13 @@ public class ExperienceExtractionV2Service {
 
             for (ExperienceExtractionDraft draft : group.getDrafts()) {
                 if (selectedItemIds.contains(draft.getId())) {
-                    selectedExperiences.add(saveDraftExperience(user, draft));
+                    selectedExperiences.add(buildDraftExperience(user, draft));
                 }
             }
         }
+
+        // Draft에서 생성된 경험 일괄 저장 (CascadeType.ALL 로 ExperienceFile 함께 INSERT)
+        experienceRepository.saveAll(selectedExperiences);
 
         batch.complete();
         batchRepository.saveAndFlush(batch);
@@ -330,7 +337,12 @@ public class ExperienceExtractionV2Service {
                 ));
     }
 
-    private UserExperience saveExtractedExperience(
+    /**
+     * UserExperience 객체를 빌드만 하고 저장은 하지 않습니다.
+     * UUID를 @PrePersist 이전에 수동 할당하여 저장 전에도 ID 참조가 가능합니다.
+     * 호출부에서 saveAll()로 일괄 저장하세요.
+     */
+    private UserExperience buildExtractedExperience(
             User user,
             AiStep2Response.Step2ExperienceDto dto,
             ExperienceType type,
@@ -338,6 +350,7 @@ public class ExperienceExtractionV2Service {
             String resumeUrl
     ) {
         UserExperience experience = UserExperience.builder()
+                .id(java.util.UUID.randomUUID().toString())
                 .user(user)
                 .title(dto.getExperience_name())
                 .experienceType(type)
@@ -348,11 +361,16 @@ public class ExperienceExtractionV2Service {
                 .keywords(dto.getKeywords() != null ? dto.getKeywords() : new ArrayList<>())
                 .build();
         attachResumeFile(experience, resumeUrl);
-        return experienceRepository.save(experience);
+        return experience;
     }
 
-    private UserExperience saveDraftExperience(User user, ExperienceExtractionDraft draft) {
+    /**
+     * Draft로부터 UserExperience를 빌드만 하고 저장은 하지 않습니다.
+     * 호출부에서 saveAll()로 일괄 저장하세요.
+     */
+    private UserExperience buildDraftExperience(User user, ExperienceExtractionDraft draft) {
         UserExperience experience = UserExperience.builder()
+                .id(java.util.UUID.randomUUID().toString())
                 .user(user)
                 .title(draft.getTitle())
                 .experienceType(draft.getExperienceType())
@@ -363,7 +381,7 @@ public class ExperienceExtractionV2Service {
                 .keywords(draft.getKeywords())
                 .build();
         attachResumeFile(experience, draft.getResumeUrl());
-        return experienceRepository.save(experience);
+        return experience;
     }
 
     private void attachResumeFile(UserExperience experience, String resumeUrl) {
