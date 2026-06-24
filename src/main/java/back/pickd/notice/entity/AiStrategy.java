@@ -2,7 +2,6 @@ package back.pickd.notice.entity;
 
 import back.pickd.coverletter.entity.CoverLetterItem;
 import back.pickd.experience.entity.UserExperience;
-import back.pickd.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -15,10 +14,6 @@ public class AiStrategy {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
 
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "cover_letter_item_id", nullable = false)
@@ -49,10 +44,9 @@ public class AiStrategy {
     }
 
     @Builder
-    public AiStrategy(User user, CoverLetterItem coverLetterItem, UserExperience matchedExperience,
+    public AiStrategy(CoverLetterItem coverLetterItem, UserExperience matchedExperience,
                       SwotStrategy strategy, String jdTargeting,
                       String dynamicFraming, String strategyDerivation, String writingGuide) {
-        this.user = user;
         this.coverLetterItem = coverLetterItem;
         this.matchedExperience = matchedExperience;
         this.strategy = strategy;
