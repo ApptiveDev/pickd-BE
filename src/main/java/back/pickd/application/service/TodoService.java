@@ -7,6 +7,8 @@ import back.pickd.application.entity.Todo;
 import back.pickd.application.repository.ApplicationRepository;
 import back.pickd.application.repository.TodoRepository;
 import back.pickd.calendar.service.CalendarAsyncService;
+import back.pickd.user.entity.User;
+import back.pickd.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -26,23 +28,24 @@ public class TodoService {
     private final TodoRepository todoRepository;
     private final ApplicationRepository applicationRepository;
     private final CalendarAsyncService calendarAsyncService;
+    private final UserService userService;
 
     public TodoResponse addTodo(TodoRequest dto, Authentication authentication) {
-        Todo todo = new Todo();
-        todo.setTitle(dto.getTitle());
-        todo.setCompleted(false);
-        todo.setMemo(dto.getMemo());
+        User user = userService.findByEmail(authentication.getName());
 
-        LocalDateTime dueDateTime = parseDueDateTime(dto.getDueDateTime());
-        todo.setDueDateTime(dueDateTime);
-
+        Application application = null;
         if (dto.getApplicationId() != null) {
-            Application application = applicationRepository
-                    .findById(dto.getApplicationId())
-                    .orElseThrow(() -> new RuntimeException("공고를 찾을 수 없습니다."));
-
-            todo.setApplication(application);
+            application = applicationRepository.findByIdAndUser(dto.getApplicationId(), user)
+                    .orElseThrow(() -> new IllegalArgumentException("지원 공고를 찾을 수 없습니다."));
         }
+
+        Todo todo = Todo.builder()
+                .user(user)
+                .application(application)
+                .title(dto.getTitle())
+                .memo(dto.getMemo())
+                .dueDateTime(parseDueDateTime(dto.getDueDateTime()))
+                .build();
 
         Todo saved = todoRepository.save(todo);
 
@@ -54,34 +57,36 @@ public class TodoService {
     }
 
     @Transactional(readOnly = true)
-    public List<TodoResponse> getTodos() {
-        return todoRepository.findAllWithApplication()
+    public List<TodoResponse> getTodos(Authentication authentication) {
+        User user = userService.findByEmail(authentication.getName());
+        return todoRepository.findAllByUserWithApplication(user)
                 .stream()
                 .map(TodoResponse::from)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<TodoResponse> getTodosByApplication(Long applicationId) {
-        return todoRepository.findByApplicationId(applicationId)
+    public List<TodoResponse> getTodosByApplication(Long applicationId, Authentication authentication) {
+        User user = userService.findByEmail(authentication.getName());
+        return todoRepository.findByApplicationIdAndUser(applicationId, user)
                 .stream()
                 .map(TodoResponse::from)
                 .toList();
     }
 
-    public void toggleTodo(Long id) {
-        Todo todo = todoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("할 일을 찾을 수 없습니다."));
-
-        todo.setCompleted(!todo.isCompleted());
+    public void toggleTodo(Long id, Authentication authentication) {
+        User user = userService.findByEmail(authentication.getName());
+        Todo todo = todoRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> new IllegalArgumentException("할 일을 찾을 수 없습니다."));
+        todo.toggleCompleted();
     }
 
     public void deleteTodo(Long id, Authentication authentication) {
-        Todo todo = todoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("할 일을 찾을 수 없습니다."));
+        User user = userService.findByEmail(authentication.getName());
+        Todo todo = todoRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> new IllegalArgumentException("할 일을 찾을 수 없습니다."));
 
         String calendarEventId = todo.getCalendarEventId();
-
         todoRepository.delete(todo);
 
         if (calendarEventId != null && !calendarEventId.isBlank()) {
@@ -93,7 +98,6 @@ public class TodoService {
         if (dueDateTime == null || dueDateTime.isBlank()) {
             return null;
         }
-
         try {
             return LocalDateTime.parse(dueDateTime);
         } catch (DateTimeParseException e) {

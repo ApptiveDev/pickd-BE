@@ -13,38 +13,32 @@ import java.util.List;
 @RequestMapping("/api/todo")
 @RequiredArgsConstructor
 public class TodoController {
+
     private final TodoService todoService;
 
     @PostMapping
-    public TodoResponse addTodo(
-            @RequestBody TodoRequest dto,
-            Authentication authentication
-    ) {
+    public TodoResponse addTodo(@RequestBody TodoRequest dto, Authentication authentication) {
         return todoService.addTodo(dto, authentication);
     }
 
     @GetMapping
-    public List<TodoResponse> getTodos() {
-        return todoService.getTodos();
+    public List<TodoResponse> getTodos(Authentication authentication) {
+        return todoService.getTodos(authentication);
     }
 
     @GetMapping("/application/{applicationId}")
-    public List<TodoResponse> getTodosByApplication(
-            @PathVariable Long applicationId
-    ) {
-        return todoService.getTodosByApplication(applicationId);
+    public List<TodoResponse> getTodosByApplication(@PathVariable Long applicationId,
+                                                     Authentication authentication) {
+        return todoService.getTodosByApplication(applicationId, authentication);
     }
 
     @PutMapping("/{id}")
-    public void toggleTodo(@PathVariable Long id) {
-        todoService.toggleTodo(id);
+    public void toggleTodo(@PathVariable Long id, Authentication authentication) {
+        todoService.toggleTodo(id, authentication);
     }
 
     @DeleteMapping("/{id}")
-    public void deleteTodo(
-            @PathVariable Long id,
-            Authentication authentication
-    ) {
+    public void deleteTodo(@PathVariable Long id, Authentication authentication) {
         todoService.deleteTodo(id, authentication);
     }
 }

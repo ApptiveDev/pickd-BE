@@ -21,7 +21,7 @@ public class Notice {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
     @Column(name = "company_name", nullable = false)
