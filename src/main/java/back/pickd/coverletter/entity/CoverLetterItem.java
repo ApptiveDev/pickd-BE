@@ -57,6 +57,9 @@ public class CoverLetterItem {
 
     @PrePersist
     protected void onCreate() {
+        if (this.notice == null && this.application == null) {
+            throw new IllegalStateException("CoverLetterItem은 Notice 또는 Application 중 하나에 반드시 연결되어야 합니다.");
+        }
         this.createdAt = LocalDateTime.now();
         this.updatedAt = this.createdAt;
     }
