@@ -14,6 +14,7 @@ public class CoverLetterItemResponse {
     private Long noticeId;
     private Long applicationId;
     private String question;
+    private boolean aiGenerated;
     private String answer;
     private Integer maxLength;
     private Integer orderIndex;
@@ -26,6 +27,7 @@ public class CoverLetterItemResponse {
                 .noticeId(item.getNotice() != null ? item.getNotice().getId() : null)
                 .applicationId(item.getApplication() != null ? item.getApplication().getId() : null)
                 .question(item.getQuestion())
+                .aiGenerated(item.isAiGenerated())
                 .answer(item.getAnswer())
                 .maxLength(item.getMaxLength())
                 .orderIndex(item.getOrderIndex())

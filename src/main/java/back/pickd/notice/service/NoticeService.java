@@ -3,7 +3,7 @@ package back.pickd.notice.service;
 import back.pickd.global.infra.ai.AiClient;
 import back.pickd.global.infra.ai.dto.*;
 import back.pickd.notice.entity.*;
-import back.pickd.notice.enums.EmploymentType;
+import back.pickd.notice.enums.*;
 
 import back.pickd.notice.repository.*;
 

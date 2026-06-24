@@ -19,6 +19,8 @@ public class CoverLetterItemRequest {
 
     private Integer orderIndex;
 
+    private boolean aiGenerated;
+
     // notice_id 또는 application_id 중 하나만 값이 있어야 함
     private Long noticeId;
     private Long applicationId;
