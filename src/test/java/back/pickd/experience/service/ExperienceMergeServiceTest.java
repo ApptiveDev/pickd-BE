@@ -5,6 +5,8 @@ import back.pickd.experience.enums.ExperienceGroup;
 import back.pickd.experience.enums.ExperienceType;
 import back.pickd.experience.enums.Status;
 import back.pickd.experience.repository.UserExperienceRepository;
+import back.pickd.experience.support.ExperienceConversionUtils;
+import back.pickd.experience.support.PresetRegistry;
 import back.pickd.global.infra.ai.AiClient;
 import back.pickd.global.infra.ai.dto.AiExperienceMergeCheckRequest;
 import back.pickd.user.entity.User;
@@ -29,6 +31,12 @@ class ExperienceMergeServiceTest {
     @Mock
     private UserExperienceRepository userExperienceRepository;
 
+    @Mock
+    private PresetRegistry presetRegistry;
+
+    @Mock
+    private ExperienceConversionUtils conversionUtils;
+
     @InjectMocks
     private ExperienceMergeService experienceMergeService;
 
@@ -50,6 +58,8 @@ class ExperienceMergeServiceTest {
                 .keywords(List.of("문제 해결"))
                 .build();
         when(userExperienceRepository.findByUserOrderByCreatedAtDesc(user)).thenReturn(List.of(experience));
+        when(conversionUtils.toKoreanGroup(ExperienceGroup.NARRATIVE)).thenReturn("상세 서술형");
+        when(conversionUtils.toKoreanType(ExperienceType.PROJECT)).thenReturn("프로젝트");
 
         List<AiExperienceMergeCheckRequest.ExperiencePayload> payloads =
                 experienceMergeService.buildExistingExperiencePayloads(user);

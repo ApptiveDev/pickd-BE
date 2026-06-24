@@ -8,6 +8,7 @@ import back.pickd.experience.enums.ExperienceType;
 import back.pickd.experience.enums.Status;
 import back.pickd.experience.repository.ExperienceTempRepository;
 import back.pickd.experience.repository.UserExperienceRepository;
+import back.pickd.experience.support.ExperienceConversionUtils;
 import back.pickd.experience.support.PresetRegistry;
 import back.pickd.global.infra.ai.AiClient;
 import back.pickd.global.infra.ai.dto.AiStep1Response;
@@ -58,6 +59,9 @@ class ExperienceExtractionServiceTest {
     @Mock
     private PresetRegistry presetRegistry;
 
+    @Mock
+    private ExperienceConversionUtils conversionUtils;
+
     @InjectMocks
     private ExperienceExtractionService experienceExtractionService;
 
@@ -91,6 +95,8 @@ class ExperienceExtractionServiceTest {
         when(s3Service.uploadFile(file, FileUploadType.TEMP_RESUME, null))
                 .thenReturn("https://cdn/resume.pdf");
         when(aiClient.extractStep1(file)).thenReturn(aiResponse);
+        when(conversionUtils.convertType("창업"))
+                .thenThrow(new IllegalArgumentException("지원하지 않는 경험 유형입니다: 창업"));
 
         assertThrows(
                 IllegalArgumentException.class,
