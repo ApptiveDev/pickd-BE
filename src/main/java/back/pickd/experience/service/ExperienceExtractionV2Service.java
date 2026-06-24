@@ -54,6 +54,7 @@ public class ExperienceExtractionV2Service {
         List<SelectedExperience> selectedExperiences = temps.stream()
                 .map(this::toSelectedExperience)
                 .toList();
+
         List<AiStep1Response.ExperienceSummaryDto> summaries = selectedExperiences.stream()
                 .map(selected -> new AiStep1Response.ExperienceSummaryDto(
                         selected.temp().getExperienceName(),
@@ -61,6 +62,7 @@ public class ExperienceExtractionV2Service {
                         selected.type().getKoreanName()
                 ))
                 .toList();
+
         List<AiExperienceMergeCheckRequest.ExperiencePayload> existingExperiences =
                 experienceMergeService.buildExistingExperiencePayloads(user);
 
@@ -72,12 +74,14 @@ public class ExperienceExtractionV2Service {
                         selectedExperiences.stream().map(SelectedExperience::type).toList()
                 )
         );
+
         List<AiStep2Response.Step2ExperienceDto> extracted = validateAiResponse(
                 aiResponse,
                 selectedExperiences
         );
 
-        List<UserExperience> savedExperiences = new ArrayList<>();
+        // UUID를 @PrePersist 이전에 수동 할당 → 루프 내 즉시 참조 가능, save() 지연 가능
+        List<UserExperience> toSave = new ArrayList<>();
         Map<Integer, UserExperience> savedByTargetIndex = new HashMap<>();
         Map<String, ExperienceDuplicateGroup> groupsByExistingId = new LinkedHashMap<>();
         ExperienceExtractionBatch batch = null;
@@ -87,15 +91,15 @@ public class ExperienceExtractionV2Service {
             SelectedExperience selected = selectedExperiences.get(index);
 
             if (!dto.isNeeds_merge()) {
-                UserExperience saved = saveExtractedExperience(
+                UserExperience experience = buildExtractedExperience(
                         user,
                         dto,
                         selected.type(),
                         selected.group(),
                         resumeUrl
                 );
-                savedExperiences.add(saved);
-                savedByTargetIndex.put(index, saved);
+                toSave.add(experience);
+                savedByTargetIndex.put(index, experience);
                 continue;
             }
 
@@ -104,15 +108,18 @@ public class ExperienceExtractionV2Service {
                     dto.getMerge_candidate_id(),
                     savedByTargetIndex
             );
+
             if (batch == null) {
                 batch = new ExperienceExtractionBatch(user);
             }
+
             ExperienceDuplicateGroup group = groupsByExistingId.get(existing.getId());
             if (group == null) {
                 group = new ExperienceDuplicateGroup(existing);
                 batch.addGroup(group);
                 groupsByExistingId.put(existing.getId(), group);
             }
+
             group.addDraft(ExperienceExtractionDraft.builder()
                     .title(dto.getExperience_name())
                     .experienceType(selected.type())
@@ -129,9 +136,13 @@ public class ExperienceExtractionV2Service {
                     .build());
         }
 
+        // 경험 + 파일 일괄 저장 (CascadeType.ALL 로 ExperienceFile 함께 INSERT)
+        List<UserExperience> savedExperiences = experienceRepository.saveAll(toSave);
+
         if (batch != null) {
             batchRepository.save(batch);
         }
+
         tempRepository.deleteByUser(user);
 
         return new Step2Response(
@@ -151,14 +162,17 @@ public class ExperienceExtractionV2Service {
                         user
                 )
                 .orElseThrow(() -> new IllegalArgumentException("중복 경험 batch를 찾을 수 없습니다."));
+
         if (batch.getStatus() != ExtractionBatchStatus.PENDING) {
             throw new IllegalStateException("이미 처리된 중복 경험 batch입니다.");
         }
 
         Map<String, GroupSelection> selections = indexSelections(request.getGroups());
+
         Set<String> expectedGroupIds = batch.getGroups().stream()
                 .map(ExperienceDuplicateGroup::getId)
                 .collect(Collectors.toSet());
+
         if (!selections.keySet().equals(expectedGroupIds)) {
             throw new IllegalArgumentException("batch의 모든 중복 그룹에 대한 선택이 필요합니다.");
         }
@@ -171,9 +185,11 @@ public class ExperienceExtractionV2Service {
             Set<String> selectedItemIds = new LinkedHashSet<>(
                     selections.get(group.getId()).getSelectedItemIds()
             );
+
             if (selectedItemIds.isEmpty()) {
                 throw new IllegalArgumentException("그룹마다 하나 이상의 경험을 선택해야 합니다.");
             }
+
             if (selectedItemIds.size()
                     != selections.get(group.getId()).getSelectedItemIds().size()) {
                 throw new IllegalArgumentException("동일한 경험을 중복 선택할 수 없습니다.");
@@ -184,6 +200,7 @@ public class ExperienceExtractionV2Service {
             group.getDrafts().stream()
                     .map(ExperienceExtractionDraft::getId)
                     .forEach(allowedItemIds::add);
+
             if (!allowedItemIds.containsAll(selectedItemIds)) {
                 throw new IllegalArgumentException("중복 그룹에 속하지 않은 경험이 선택되었습니다.");
             }
@@ -198,13 +215,17 @@ public class ExperienceExtractionV2Service {
 
             for (ExperienceExtractionDraft draft : group.getDrafts()) {
                 if (selectedItemIds.contains(draft.getId())) {
-                    selectedExperiences.add(saveDraftExperience(user, draft));
+                    selectedExperiences.add(buildDraftExperience(user, draft));
                 }
             }
         }
 
+        // Draft에서 생성된 경험 일괄 저장 (CascadeType.ALL 로 ExperienceFile 함께 INSERT)
+        experienceRepository.saveAll(selectedExperiences);
+
         batch.complete();
         batchRepository.saveAndFlush(batch);
+
         if (!experiencesToDelete.isEmpty()) {
             experienceRepository.deleteAll(experiencesToDelete);
         }
@@ -236,14 +257,13 @@ public class ExperienceExtractionV2Service {
         if (new HashSet<>(selectedTempIds).size() != selectedTempIds.size()) {
             throw new IllegalArgumentException("동일한 임시 경험을 중복 선택할 수 없습니다.");
         }
-
         Map<Long, ExperienceTemp> tempsById = tempRepository.findAllById(selectedTempIds)
                 .stream()
                 .collect(Collectors.toMap(ExperienceTemp::getId, Function.identity()));
+
         if (tempsById.size() != selectedTempIds.size()) {
             throw new IllegalArgumentException("요청한 임시 경험 데이터를 찾을 수 없습니다.");
         }
-
         List<ExperienceTemp> ordered = selectedTempIds.stream()
                 .map(tempsById::get)
                 .toList();
@@ -288,7 +308,6 @@ public class ExperienceExtractionV2Service {
         if (response.getExperiences().size() != selectedExperiences.size()) {
             throw new IllegalStateException("AI 2차 경험 추출 결과 수가 선택한 경험 수와 다릅니다.");
         }
-
         for (int index = 0; index < response.getExperiences().size(); index++) {
             AiStep2Response.Step2ExperienceDto dto = response.getExperiences().get(index);
             ExperienceType responseType = convertType(dto.getExperience_type());
@@ -330,7 +349,12 @@ public class ExperienceExtractionV2Service {
                 ));
     }
 
-    private UserExperience saveExtractedExperience(
+    /**
+     * UserExperience 객체를 빌드만 하고 저장은 하지 않습니다.
+     * UUID를 @PrePersist 이전에 수동 할당하여 저장 전에도 ID 참조가 가능합니다.
+     * 호출부에서 saveAll()로 일괄 저장하세요.
+     */
+    private UserExperience buildExtractedExperience(
             User user,
             AiStep2Response.Step2ExperienceDto dto,
             ExperienceType type,
@@ -338,6 +362,7 @@ public class ExperienceExtractionV2Service {
             String resumeUrl
     ) {
         UserExperience experience = UserExperience.builder()
+                .id(java.util.UUID.randomUUID().toString())
                 .user(user)
                 .title(dto.getExperience_name())
                 .experienceType(type)
@@ -348,11 +373,16 @@ public class ExperienceExtractionV2Service {
                 .keywords(dto.getKeywords() != null ? dto.getKeywords() : new ArrayList<>())
                 .build();
         attachResumeFile(experience, resumeUrl);
-        return experienceRepository.save(experience);
+        return experience;
     }
 
-    private UserExperience saveDraftExperience(User user, ExperienceExtractionDraft draft) {
+    /**
+     * Draft로부터 UserExperience를 빌드만 하고 저장은 하지 않습니다.
+     * 호출부에서 saveAll()로 일괄 저장하세요.
+     */
+    private UserExperience buildDraftExperience(User user, ExperienceExtractionDraft draft) {
         UserExperience experience = UserExperience.builder()
+                .id(java.util.UUID.randomUUID().toString())
                 .user(user)
                 .title(draft.getTitle())
                 .experienceType(draft.getExperienceType())
@@ -363,7 +393,7 @@ public class ExperienceExtractionV2Service {
                 .keywords(draft.getKeywords())
                 .build();
         attachResumeFile(experience, draft.getResumeUrl());
-        return experienceRepository.save(experience);
+        return experience;
     }
 
     private void attachResumeFile(UserExperience experience, String resumeUrl) {
