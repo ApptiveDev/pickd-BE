@@ -56,20 +56,13 @@ public class Notice {
     @Column(name = "notice_url", columnDefinition = "TEXT")
     private String noticeUrl;
 
-    @Column(columnDefinition = "TEXT")
-    private String opportunities;
-
-    @Column(columnDefinition = "TEXT")
-    private String threats;
-
     @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<NoticeSection> sections = new ArrayList<>();
 
     @Builder
     public Notice(User user, String companyName, String noticeName, JobCategory category,
                   String startedAt, String endedAt, EmploymentType employmentType, String headcount,
-                  String region1depth, String workplaceAddress, String noticeUrl,
-                  String opportunities, String threats) {
+                  String region1depth, String workplaceAddress, String noticeUrl) {
         this.user = user;
         this.companyName = companyName;
         this.noticeName = noticeName;
@@ -81,8 +74,6 @@ public class Notice {
         this.region1depth = region1depth;
         this.workplaceAddress = workplaceAddress;
         this.noticeUrl = noticeUrl;
-        this.opportunities = opportunities;
-        this.threats = threats;
     }
 
     public void addSection(NoticeSection section) {
