@@ -8,6 +8,7 @@ import back.pickd.experience.dto.ExperienceCreateDto.Request;
 import back.pickd.experience.dto.ExperienceMergeDto.Candidate;
 import back.pickd.experience.dto.ExperienceMergeDto.Conflict;
 import back.pickd.experience.dto.ExperienceMergeDto.Draft;
+import back.pickd.experience.support.ExperienceConversionUtils;
 import back.pickd.user.entity.User;
 import back.pickd.experience.entity.UserExperience;
 import back.pickd.experience.enums.ExperienceGroup;
@@ -30,6 +31,7 @@ public class ExperienceMergeService {
 
     private final AiClient aiClient;
     private final UserExperienceRepository userExperienceRepository;
+    private final ExperienceConversionUtils conversionUtils;
 
     public List<AiExperienceMergeCheckRequest.ExperiencePayload> buildExistingExperiencePayloads(User user) {
         return userExperienceRepository.findByUserOrderByCreatedAtDesc(user)
@@ -133,8 +135,8 @@ public class ExperienceMergeService {
                 .id(experience.getId())
                 .title(experience.getTitle())
                 .experienceName(experience.getTitle())
-                .experienceGroup(toKoreanGroup(experience.getExperienceGroup()))
-                .experienceType(toKoreanType(experience.getExperienceType()))
+                .experienceGroup(conversionUtils.toKoreanGroup(experience.getExperienceGroup()))
+                .experienceType(conversionUtils.toKoreanType(experience.getExperienceType()))
                 .keywords(experience.getKeywords() != null ? experience.getKeywords() : new ArrayList<>())
                 .attributes(experience.getAttributes() != null ? experience.getAttributes() : new HashMap<>())
                 .documentContent(experience.getDocumentContent())
@@ -145,22 +147,12 @@ public class ExperienceMergeService {
         return AiExperienceMergeCheckRequest.ExperiencePayload.builder()
                 .title(request.getTitle())
                 .experienceName(request.getTitle())
-                .experienceGroup(toKoreanGroup(request.getExperienceGroup()))
-                .experienceType(toKoreanType(request.getExperienceType()))
+                .experienceGroup(conversionUtils.toKoreanGroup(request.getExperienceGroup()))
+                .experienceType(conversionUtils.toKoreanType(request.getExperienceType()))
                 .keywords(request.getKeywords() != null ? request.getKeywords() : new ArrayList<>())
                 .attributes(request.getAttributes() != null ? request.getAttributes() : new HashMap<>())
                 .documentContent(request.getDocumentContent())
                 .build();
     }
 
-    private String toKoreanGroup(ExperienceGroup group) {
-        if (group == null) {
-            return null;
-        }
-        return group == ExperienceGroup.NARRATIVE ? "상세 서술형" : "스펙·증빙형";
-    }
-
-    private String toKoreanType(ExperienceType type) {
-        return type != null ? type.getKoreanName() : null;
-    }
 }
