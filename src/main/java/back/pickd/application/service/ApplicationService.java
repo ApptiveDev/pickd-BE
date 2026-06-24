@@ -78,7 +78,6 @@ public class ApplicationService {
             calendarAsyncService.createEventAsync(app.getId(), "deadline", auth, event);
         }
 
-        applicationRepository.save(app);
     }
 
     @Transactional

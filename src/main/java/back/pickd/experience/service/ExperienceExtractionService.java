@@ -34,6 +34,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+/**
+ * @deprecated V2({@link ExperienceExtractionV2Service})로 대체됨. 신규 개발은 V2를 사용할 것.
+ */
+@Deprecated
 @Service
 @RequiredArgsConstructor
 public class ExperienceExtractionService {
