@@ -56,7 +56,21 @@ public class SecurityConfig {
             )
 
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/", "/login", "/error", "/css/**", "/js/**", "/h2-console/**", "/favicon.ico", "/onboarding-test.html", "/api/experiences/extract/temp-token").permitAll()
+                .requestMatchers(
+                    "/",
+                    "/login",
+                    "/error",
+                    "/css/**",
+                    "/js/**",
+                    "/h2-console/**",
+                    "/favicon.ico",
+                    "/onboarding-test.html",
+                    "/experience-extraction-test",
+                    "/api/experiences/extract/temp-token",
+                    "/swagger-ui.html",
+                    "/swagger-ui/**",
+                    "/v3/api-docs/**"
+                ).permitAll()
                 .requestMatchers("/api/auth/**").permitAll()
                 .anyRequest().authenticated()
             )
