@@ -8,8 +8,8 @@ import back.pickd.coverletter.dto.response.CoverLetterItemResponse;
 import back.pickd.coverletter.entity.CoverLetterItem;
 import back.pickd.coverletter.repository.CoverLetterItemRepository;
 import back.pickd.notice.enums.JobCategory;
-import back.pickd.notice.notice.Notice;
-import back.pickd.notice.notice.NoticeRepository;
+import back.pickd.notice.entity.Notice;
+import back.pickd.notice.repository.NoticeRepository;
 import back.pickd.user.entity.User;
 import back.pickd.user.service.UserService;
 import org.junit.jupiter.api.BeforeEach;
@@ -79,7 +79,7 @@ class CoverLetterItemServiceTest {
     }
 
     private CoverLetterItemRequest buildRequest(Long noticeId, Long appId) {
-        return new CoverLetterItemRequest("지원 동기를 서술하세요.", "저는...", 500, 0, noticeId, appId);
+        return new CoverLetterItemRequest("지원 동기를 서술하세요.", "저는...", 500, 0, false, noticeId, appId);
     }
 
     // ── getByNotice ────────────────────────────────────────────────────────────
@@ -198,7 +198,7 @@ class CoverLetterItemServiceTest {
         @DisplayName("orderIndex가 null이면 0으로 저장된다")
         void savesOrderIndexAsZeroWhenNull() {
             // orderIndex = null 로 생성
-            CoverLetterItemRequest req = new CoverLetterItemRequest("지원 동기를 서술하세요.", "저는...", 500, null, 1L, null);
+            CoverLetterItemRequest req = new CoverLetterItemRequest("지원 동기를 서술하세요.", "저는...", 500, null, false, 1L, null);
             when(noticeRepository.findByIdAndUser(1L, user)).thenReturn(Optional.of(notice));
             ArgumentCaptor<CoverLetterItem> captor = ArgumentCaptor.forClass(CoverLetterItem.class);
             when(coverLetterItemRepository.save(captor.capture())).thenAnswer(inv -> inv.getArgument(0));
@@ -221,7 +221,7 @@ class CoverLetterItemServiceTest {
             CoverLetterItem item = buildItem(notice, null);
             when(coverLetterItemRepository.findByIdAndUser(1L, user)).thenReturn(Optional.of(item));
 
-            CoverLetterItemRequest req = new CoverLetterItemRequest("수정된 문항", "수정된 답변", 1000, 2, null, null);
+            CoverLetterItemRequest req = new CoverLetterItemRequest("수정된 문항", "수정된 답변", 1000, 2, false, null, null);
 
             coverLetterItemService.update(1L, req, authentication);
 
@@ -248,7 +248,7 @@ class CoverLetterItemServiceTest {
             // item.orderIndex = 0 (빌더 기본값)
             when(coverLetterItemRepository.findByIdAndUser(1L, user)).thenReturn(Optional.of(item));
 
-            CoverLetterItemRequest req = new CoverLetterItemRequest("지원 동기를 서술하세요.", "저는...", 500, null, null, null);
+            CoverLetterItemRequest req = new CoverLetterItemRequest("지원 동기를 서술하세요.", "저는...", 500, null, false, null, null);
 
             coverLetterItemService.update(1L, req, authentication);
 

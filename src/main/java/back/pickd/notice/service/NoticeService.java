@@ -2,20 +2,11 @@ package back.pickd.notice.service;
 
 import back.pickd.global.infra.ai.AiClient;
 import back.pickd.global.infra.ai.dto.*;
+import back.pickd.notice.entity.*;
 import back.pickd.notice.enums.EmploymentType;
-import back.pickd.notice.enums.JobCategory;
-import back.pickd.notice.notice.Notice;
-import back.pickd.notice.notice.NoticeRepository;
-import back.pickd.notice.section.NoticeSection;
-import back.pickd.notice.section.NoticeSectionRepository;
-import back.pickd.notice.qualification.SectionQualification;
-import back.pickd.notice.qualification.SectionQualificationRepository;
-import back.pickd.notice.preference.SectionPreference;
-import back.pickd.notice.preference.SectionPreferenceRepository;
-import back.pickd.notice.process.NoticeProcess;
-import back.pickd.notice.process.NoticeProcessRepository;
-import back.pickd.notice.document.ApplicationDocument;
-import back.pickd.notice.document.ApplicationDocumentRepository;
+
+import back.pickd.notice.repository.*;
+
 import back.pickd.user.entity.User;
 import back.pickd.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;

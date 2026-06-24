@@ -1,7 +1,7 @@
 package back.pickd.coverletter.entity;
 
 import back.pickd.application.entity.Application;
-import back.pickd.notice.notice.Notice;
+import back.pickd.notice.entity.Notice;
 import back.pickd.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -45,6 +45,10 @@ public class CoverLetterItem {
     @Builder.Default
     private Integer orderIndex = 0;
 
+    @Column(name = "ai_generated", nullable = false)
+    @Builder.Default
+    private boolean aiGenerated = false;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -69,5 +73,9 @@ public class CoverLetterItem {
         this.answer = answer;
         this.maxLength = maxLength;
         this.orderIndex = orderIndex;
+    }
+
+    public void writeAnswer(String answer) {
+        this.answer = answer;
     }
 }
