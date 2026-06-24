@@ -1,15 +1,24 @@
 package back.pickd.document.dto;
 
+import back.pickd.document.enums.DocumentStatus;
+import back.pickd.document.enums.DocumentType;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 public class DocumentRequest {
+
     private String title;
     private String company;
-    private String type; // 포트 폴리오인지 이력서인지
-    private Integer progress; // 글자수로 계산해서 응답 
-    private String status; // nullable 
-    private String content; // 수정 가능해야함. 
+
+    @NotNull
+    private DocumentType type;      // RESUME, PORTFOLIO, COVER_LETTER, ETC
+
+    private DocumentStatus status;  // nullable
+
+    private Integer progress;       // 글자수 기반 계산값
+
+    private String content;         // 수정 가능
 }
