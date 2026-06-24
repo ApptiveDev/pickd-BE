@@ -1,6 +1,7 @@
 package back.pickd.application.entity;
 
 import back.pickd.application.enums.ApplicationStatus;
+import back.pickd.coverletter.entity.CoverLetterItem;
 import back.pickd.document.entity.Document;
 import back.pickd.user.entity.User;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
@@ -63,6 +64,10 @@ public class Application {
     @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<Document> documents = new ArrayList<>();
+
+    @OneToMany(mappedBy = "application", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<CoverLetterItem> coverLetterItems = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {

@@ -1,5 +1,6 @@
 package back.pickd.notice.notice;
 
+import back.pickd.coverletter.entity.CoverLetterItem;
 import back.pickd.notice.enums.EmploymentType;
 import back.pickd.notice.enums.JobCategory;
 import back.pickd.notice.section.NoticeSection;
@@ -58,6 +59,9 @@ public class Notice {
 
     @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<NoticeSection> sections = new ArrayList<>();
+
+    @OneToMany(mappedBy = "notice", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<CoverLetterItem> coverLetterItems = new ArrayList<>();
 
     @Builder
     public Notice(User user, String companyName, String noticeName, JobCategory category,
