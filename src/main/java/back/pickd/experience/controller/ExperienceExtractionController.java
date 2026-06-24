@@ -18,6 +18,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+/**
+ * @deprecated V2({@link ExperienceExtractionV2Controller})로 대체됨.
+ */
+@Deprecated
 @RestController
 @RequestMapping("/api/experiences/extract")
 @RequiredArgsConstructor
