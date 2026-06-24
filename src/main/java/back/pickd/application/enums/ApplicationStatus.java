@@ -1,5 +1,7 @@
 package back.pickd.application.enums;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
@@ -14,7 +16,18 @@ public enum ApplicationStatus {
     INTERVIEW("면접 전형"),
     FINAL("최종 결과");
 
+    @JsonValue
     private final String label;
+
+    @JsonCreator
+    public static ApplicationStatus from(String label) {
+        for (ApplicationStatus status : values()) {
+            if (status.label.equals(label)) {
+                return status;
+            }
+        }
+        throw new IllegalArgumentException("지원하지 않는 지원 상태입니다: " + label);
+    }
 
     public boolean needsApplyEvent() {
         return this == PREPARING || this == WRITING;

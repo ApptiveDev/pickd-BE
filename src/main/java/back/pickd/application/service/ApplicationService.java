@@ -1,6 +1,7 @@
 package back.pickd.application.service;
 
 import back.pickd.application.dto.request.ApplicationRequest;
+import back.pickd.application.dto.response.ApplicationResponse;
 import back.pickd.application.entity.Application;
 import back.pickd.application.enums.ApplicationStatus;
 import back.pickd.application.repository.ApplicationRepository;
@@ -30,9 +31,10 @@ public class ApplicationService {
     private final UserService userService;
 
     @Transactional(readOnly = true)
-    public List<Application> getApplications(Authentication auth) {
+    public List<ApplicationResponse> getApplications(Authentication auth) {
         User user = userService.findByEmail(auth.getName());
-        return applicationRepository.findAllByUserOrderByIdDesc(user);
+        return applicationRepository.findAllByUserOrderByIdDesc(user)
+                .stream().map(ApplicationResponse::from).toList();
     }
 
     @Transactional

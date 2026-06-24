@@ -296,7 +296,7 @@ class ApplicationServiceTest {
             when(applicationRepository.findByIdAndUser(99L, user)).thenReturn(Optional.empty());
             ApplicationRequest req = buildRequest(ApplicationStatus.WRITING);
 
-            assertThatThrownBy(() -> applicationService.updateApplication(99L, authentication, req))
+            assertThatThrownBy(() -> applicationService.updateApplication(99L, req, authentication))
                     .isInstanceOf(IllegalArgumentException.class)
                     .hasMessageContaining("지원 공고를 찾을 수 없습니다");
         }
@@ -319,7 +319,7 @@ class ApplicationServiceTest {
             req.setDeadlineDate(LocalDateTime.now().plusDays(7));
             when(applicationRepository.save(any())).thenReturn(app);
 
-            applicationService.updateApplication(1L, authentication, req);
+            applicationService.updateApplication(1L, req, authentication);
 
             verify(calendarAsyncService).deleteEventAsync(authentication, "old-event-id");
         }
