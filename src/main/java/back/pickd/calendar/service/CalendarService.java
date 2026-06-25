@@ -1,6 +1,7 @@
 package back.pickd.calendar.service;
 
 import back.pickd.application.entity.Todo;
+import back.pickd.global.error.ApiException;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
@@ -32,11 +33,11 @@ public class CalendarService {
     private static final ZoneId SEOUL_ZONE = ZoneId.of(TIME_ZONE);
 
     private Calendar getCalendarClient(Authentication authentication) throws IOException, GeneralSecurityException {
-        if (authentication == null) throw new RuntimeException("로그인 필요");
+        if (authentication == null) throw ApiException.unauthorized("로그인이 필요합니다.");
         OAuth2AuthorizedClient client =
                 authorizedClientService.loadAuthorizedClient("google", authentication.getName());
 
-        if (client == null) throw new RuntimeException("구글 연동 필요");
+        if (client == null) throw ApiException.unauthorized("Google 계정 연동이 필요합니다.");
         String token = client.getAccessToken().getTokenValue();
         GoogleCredentials credentials = GoogleCredentials.create(new AccessToken(token, null));
         NetHttpTransport httpTransport = GoogleNetHttpTransport.newTrustedTransport();

@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
@@ -14,6 +15,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.time.LocalDateTime;
+import java.util.stream.Collectors;
 
 /**
  * 전역 예외 처리기 (Global Exception Handler)
@@ -25,6 +27,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoResourceFoundException.class)
     public ResponseEntity<ErrorResponse> handleNoResourceFoundException(NoResourceFoundException e, HttpServletRequest request) {
         return buildErrorResponse(HttpStatus.NOT_FOUND, "요청하신 리소스를 찾을 수 없습니다: " + e.getResourcePath(), request);
+    }
+
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<ErrorResponse> handleApiException(ApiException e, HttpServletRequest request) {
+        log.warn("ApiException [{}]: {}", e.getStatus(), e.getMessage());
+        return buildErrorResponse(e.getStatus(), e.getMessage(), request);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException e, HttpServletRequest request) {
+        String message = e.getBindingResult().getFieldErrors().stream()
+                .map(fe -> fe.getField() + ": " + fe.getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        log.warn("Validation failed: {}", message);
+        return buildErrorResponse(HttpStatus.BAD_REQUEST, message, request);
     }
 
     @ExceptionHandler({IOException.class, GeneralSecurityException.class})
@@ -39,12 +56,12 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({OAuth2AuthenticationException.class, RuntimeException.class})
-    public ResponseEntity<ErrorResponse> handleAuthException(Exception e, HttpServletRequest request) {
-        log.error("Authentication/Runtime Exception: {}", e.getMessage());
-        
-        HttpStatus status = e.getMessage().contains("로그인") || e.getMessage().contains("인증") 
+    public ResponseEntity<ErrorResponse> handleRuntimeException(Exception e, HttpServletRequest request) {
+        log.error("Runtime Exception: {}", e.getMessage());
+        String message = e.getMessage() != null ? e.getMessage() : "처리 중 오류가 발생했습니다.";
+        HttpStatus status = message.contains("로그인") || message.contains("인증")
                 ? HttpStatus.UNAUTHORIZED : HttpStatus.BAD_REQUEST;
-        return buildErrorResponse(status, e.getMessage(), request);
+        return buildErrorResponse(status, message, request);
     }
 
     @ExceptionHandler(Exception.class)

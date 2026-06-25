@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -49,7 +50,7 @@ public class ApplicationController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
-    public void add(@RequestBody ApplicationRequest dto, @Parameter(hidden = true) Authentication auth) throws Exception {
+    public void add(@RequestBody @Valid ApplicationRequest dto, @Parameter(hidden = true) Authentication auth) throws Exception {
         applicationService.addApplication(dto, auth);
     }
 
@@ -76,7 +77,7 @@ public class ApplicationController {
                     content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
     })
     public void update(@PathVariable Long id,
-                       @RequestBody ApplicationRequest dto,
+                       @RequestBody @Valid ApplicationRequest dto,
                        @Parameter(hidden = true) Authentication auth) throws Exception {
         applicationService.updateApplication(id, dto, auth);
     }

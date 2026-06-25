@@ -15,6 +15,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -69,7 +70,7 @@ public class CalendarRestController {
     })
     public Event createEvent(
             @Parameter(hidden = true) Authentication authentication,
-            @RequestBody CalendarEventRequest requestDto) throws IOException, GeneralSecurityException {
+            @RequestBody @Valid CalendarEventRequest requestDto) throws IOException, GeneralSecurityException {
         Event event = new Event()
                 .setSummary(requestDto.getSummary())
                 .setLocation(requestDto.getLocation())
@@ -100,7 +101,7 @@ public class CalendarRestController {
     public Event updateEvent(
             @Parameter(hidden = true) Authentication authentication,
             @PathVariable String eventId,
-            @RequestBody CalendarEventRequest requestDto) throws IOException, GeneralSecurityException {
+            @RequestBody @Valid CalendarEventRequest requestDto) throws IOException, GeneralSecurityException {
 
         Event existingEvent = calendarService.getEvent(authentication, eventId);
 
