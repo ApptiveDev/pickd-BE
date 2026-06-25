@@ -2,9 +2,19 @@ package back.pickd.calendar.controller;
 
 import back.pickd.calendar.dto.CalendarEventRequest;
 import back.pickd.calendar.service.CalendarService;
+import back.pickd.global.config.OpenApiConfig;
+import back.pickd.global.error.ErrorResponse;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
@@ -17,17 +27,26 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/calendar")
 @RequiredArgsConstructor
+@Tag(name = "Calendar", description = "Google Calendar 연동 일정 관리 API")
+@SecurityRequirement(name = OpenApiConfig.COOKIE_AUTH)
 public class CalendarRestController {
 
     private final CalendarService calendarService;
 
-    /**
-     * 일정 목록 조회
-     */
     @GetMapping("/events")
-    public List<Event> getEvents(Authentication authentication,
-                                @RequestParam(required = false) String timeMin,
-                                @RequestParam(required = false) String timeMax)
+    @Operation(
+            summary = "일정 목록 조회",
+            description = "현재 시점 기준 1년 전 ~ 1년 후 범위의 Google Calendar 일정을 반환합니다. timeMin/timeMax 파라미터는 현재 미적용(서버 내부 범위 고정)입니다."
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public List<Event> getEvents(
+            @Parameter(hidden = true) Authentication authentication,
+            @Parameter(description = "조회 시작 시각 (현재 미적용)") @RequestParam(required = false) String timeMin,
+            @Parameter(description = "조회 종료 시각 (현재 미적용)") @RequestParam(required = false) String timeMax)
             throws IOException, GeneralSecurityException {
 
         java.util.TimeZone tz = java.util.TimeZone.getTimeZone("Asia/Seoul");
@@ -42,11 +61,16 @@ public class CalendarRestController {
         return calendarService.getEvents(authentication, min, max);
     }
 
-    /**
-     * 일정 등록
-     */
     @PostMapping("/events")
-    public Event createEvent(Authentication authentication, @RequestBody @Valid CalendarEventRequest requestDto) throws IOException, GeneralSecurityException {
+    @Operation(summary = "일정 등록", description = "Google Calendar에 새 일정을 등록합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "등록 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public Event createEvent(
+            @Parameter(hidden = true) Authentication authentication,
+            @RequestBody @Valid CalendarEventRequest requestDto) throws IOException, GeneralSecurityException {
         Event event = new Event()
                 .setSummary(requestDto.getSummary())
                 .setLocation(requestDto.getLocation())
@@ -67,33 +91,44 @@ public class CalendarRestController {
         return calendarService.createEvent(authentication, event);
     }
 
-    /**
-     * 일정 수정 (부분 업데이트 지원)
-     */
     @PutMapping("/events/{eventId}")
-    public Event updateEvent(Authentication authentication, 
-                            @PathVariable String eventId, 
-                            @RequestBody @Valid CalendarEventRequest requestDto) throws IOException, GeneralSecurityException {
-        
+    @Operation(summary = "일정 수정", description = "기존 일정을 부분 업데이트합니다. null 필드는 변경되지 않습니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "수정 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public Event updateEvent(
+            @Parameter(hidden = true) Authentication authentication,
+            @PathVariable String eventId,
+            @RequestBody @Valid CalendarEventRequest requestDto) throws IOException, GeneralSecurityException {
+
         Event existingEvent = calendarService.getEvent(authentication, eventId);
-        
+
         if (requestDto.getSummary() != null) existingEvent.setSummary(requestDto.getSummary());
         if (requestDto.getLocation() != null) existingEvent.setLocation(requestDto.getLocation());
         if (requestDto.getDescription() != null) existingEvent.setDescription(requestDto.getDescription());
-        
+
         return calendarService.updateEvent(authentication, eventId, existingEvent);
     }
 
-    /**
-     * 일정 삭제
-     */
     @DeleteMapping("/events/{eventId}")
-    public void deleteEvent(Authentication authentication, @PathVariable String eventId) throws IOException, GeneralSecurityException {
+    @Operation(summary = "일정 삭제", description = "Google Calendar에서 일정을 삭제합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "삭제 성공"),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public void deleteEvent(
+            @Parameter(hidden = true) Authentication authentication,
+            @PathVariable String eventId) throws IOException, GeneralSecurityException {
         calendarService.deleteEvent(authentication, eventId);
     }
 
     @GetMapping("/me")
-    public String me(Authentication authentication) {
+    @Operation(summary = "인증 사용자 이메일 확인", description = "현재 인증된 사용자의 이메일을 반환합니다. (디버그용)")
+    @ApiResponse(responseCode = "200", description = "이메일 반환")
+    public String me(@Parameter(hidden = true) Authentication authentication) {
         if (authentication == null) return null;
         return authentication.getName();
     }
