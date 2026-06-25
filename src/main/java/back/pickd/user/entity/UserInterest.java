@@ -23,12 +23,16 @@ public class UserInterest {
     private User user;
 
     @ElementCollection
-    @CollectionTable(name = "user_interest_industries", joinColumns = @JoinColumn(name = "user_interest_id"))
+    @CollectionTable(name = "user_interest_industries",
+            joinColumns = @JoinColumn(name = "user_interest_id"),
+            indexes = @Index(name = "idx_user_interest_industries", columnList = "user_interest_id"))
     @Column(name = "industry")
     private List<String> industries = new ArrayList<>();
 
     @ElementCollection
-    @CollectionTable(name = "user_interest_job_groups", joinColumns = @JoinColumn(name = "user_interest_id"))
+    @CollectionTable(name = "user_interest_job_groups",
+            joinColumns = @JoinColumn(name = "user_interest_id"),
+            indexes = @Index(name = "idx_user_interest_job_groups", columnList = "user_interest_id"))
     @Column(name = "job_group")
     private List<String> jobGroups = new ArrayList<>();
 
@@ -36,12 +40,16 @@ public class UserInterest {
     private String employmentType; // e.g., "FULL_TIME", "INTERN"
 
     @ElementCollection
-    @CollectionTable(name = "user_interest_company_types", joinColumns = @JoinColumn(name = "user_interest_id"))
+    @CollectionTable(name = "user_interest_company_types",
+            joinColumns = @JoinColumn(name = "user_interest_id"),
+            indexes = @Index(name = "idx_user_interest_company_types", columnList = "user_interest_id"))
     @Column(name = "company_type")
     private List<String> companyTypes = new ArrayList<>();
 
     @ElementCollection
-    @CollectionTable(name = "user_interest_keywords", joinColumns = @JoinColumn(name = "user_interest_id"))
+    @CollectionTable(name = "user_interest_keywords",
+            joinColumns = @JoinColumn(name = "user_interest_id"),
+            indexes = @Index(name = "idx_user_interest_keywords", columnList = "user_interest_id"))
     @Column(name = "keyword")
     private List<String> keywords = new ArrayList<>();
 
@@ -64,7 +72,9 @@ public class UserInterest {
     private String workType;
 
     @ElementCollection
-    @CollectionTable(name = "user_interest_apply_types", joinColumns = @JoinColumn(name = "user_interest_id"))
+    @CollectionTable(name = "user_interest_apply_types",
+            joinColumns = @JoinColumn(name = "user_interest_id"),
+            indexes = @Index(name = "idx_user_interest_apply_types", columnList = "user_interest_id"))
     @Column(name = "apply_type")
     private List<String> applyTypes = new ArrayList<>();
 
