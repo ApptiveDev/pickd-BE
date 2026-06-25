@@ -4,6 +4,7 @@ import back.pickd.application.entity.Application;
 import back.pickd.application.enums.ApplicationStatus;
 import back.pickd.application.repository.ApplicationRepository;
 import back.pickd.document.dto.DocumentRequest;
+import back.pickd.document.dto.DocumentResponse;
 import back.pickd.document.entity.Document;
 import back.pickd.document.enums.DocumentStatus;
 import back.pickd.document.enums.DocumentType;
@@ -90,7 +91,7 @@ class DocumentServiceTest {
             Document doc2 = buildDocument();
             when(documentRepository.findAllByUserOrderByIdDesc(user)).thenReturn(List.of(doc2, doc1));
 
-            List<Document> result = documentService.getAllDocuments(authentication);
+            List<DocumentResponse> result = documentService.getAllDocuments(authentication);
 
             assertThat(result).hasSize(2);
             verify(documentRepository).findAllByUserOrderByIdDesc(user);
@@ -109,7 +110,7 @@ class DocumentServiceTest {
             when(documentRepository.findAllByApplicationIdAndUser(1L, user))
                     .thenReturn(List.of(buildDocument()));
 
-            List<Document> result = documentService.getDocuments(1L, authentication);
+            List<DocumentResponse> result = documentService.getDocuments(1L, authentication);
 
             assertThat(result).hasSize(1);
             verify(documentRepository).findAllByApplicationIdAndUser(1L, user);
@@ -173,7 +174,6 @@ class DocumentServiceTest {
         void updatesDocumentContent() {
             Document doc = buildDocument();
             when(documentRepository.findByIdAndUser(1L, user)).thenReturn(Optional.of(doc));
-            when(documentRepository.save(doc)).thenReturn(doc);
 
             DocumentRequest req = buildRequest();
             req.setTitle("수정된 자소서");
