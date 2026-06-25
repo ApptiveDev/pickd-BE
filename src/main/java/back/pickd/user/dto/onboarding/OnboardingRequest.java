@@ -5,6 +5,7 @@ import back.pickd.user.entity.enums.EnrollmentStatus;
 import back.pickd.user.entity.enums.OnboardingStep;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
@@ -21,6 +22,7 @@ public class OnboardingRequest {
 
     // Step 1.5: Verification
     private String name;
+    @Pattern(regexp = "^\\d{8}$", message = "생년월일 형식은 YYYYMMDD여야 합니다.")
     private String birthDate;
     private String phone;
 
@@ -38,6 +40,7 @@ public class OnboardingRequest {
     private String minor;
     private DegreeType degreeType;
     private EnrollmentStatus enrollmentStatus;
+    @Pattern(regexp = "^\\d{4}-\\d{2}$", message = "졸업년월 형식은 YYYY-MM이어야 합니다.")
     private String graduationDate;
     private Double gpa;
     private String campus;
@@ -87,6 +90,7 @@ public class OnboardingRequest {
     public static class CertificationDto {
         private String name;
         private String score;
+        @Pattern(regexp = "^\\d{4}-\\d{2}$", message = "취득년월 형식은 YYYY-MM이어야 합니다.")
         private String acquisitionDate;
     }
 }

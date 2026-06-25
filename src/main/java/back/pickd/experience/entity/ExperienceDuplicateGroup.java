@@ -1,6 +1,8 @@
 package back.pickd.experience.entity;
 
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -25,6 +27,7 @@ public class ExperienceDuplicateGroup {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "existing_experience_id", nullable = false)
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private UserExperience existingExperience;
 
     @OneToMany(mappedBy = "duplicateGroup", cascade = CascadeType.ALL, orphanRemoval = true)

@@ -1,8 +1,10 @@
 package back.pickd.experience.entity;
 
 import back.pickd.experience.enums.ExtractionBatchStatus;
+import back.pickd.global.error.ApiException;
 import back.pickd.user.entity.User;
 import jakarta.persistence.*;
+import org.springframework.http.HttpStatus;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -52,6 +54,9 @@ public class ExperienceExtractionBatch {
     }
 
     public void complete() {
+        if (this.status != ExtractionBatchStatus.PENDING) {
+            throw new ApiException(HttpStatus.BAD_REQUEST, "이미 처리된 배치입니다.");
+        }
         this.status = ExtractionBatchStatus.COMPLETED;
         this.processedAt = OffsetDateTime.now();
         this.groups.clear();
