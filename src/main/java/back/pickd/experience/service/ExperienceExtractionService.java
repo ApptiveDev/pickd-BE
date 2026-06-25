@@ -35,9 +35,10 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 /**
- * @deprecated V2({@link ExperienceExtractionV2Service})로 대체됨. 신규 개발은 V2를 사용할 것.
+ * 경험 추출 V1 서비스.
+ * step1은 V1 전용이며 V2와 함께 운영됩니다.
+ * step2/step3의 신규 개발은 V2({@link ExperienceExtractionV2Service})를 사용하세요.
  */
-@Deprecated
 @Service
 @RequiredArgsConstructor
 public class ExperienceExtractionService {
