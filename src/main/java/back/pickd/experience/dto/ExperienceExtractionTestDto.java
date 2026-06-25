@@ -43,8 +43,8 @@ public final class ExperienceExtractionTestDto {
             return new TempState(
                     temp.getId(),
                     temp.getExperienceName(),
-                    temp.getExperienceGroup(),
-                    temp.getExperienceType(),
+                    temp.getExperienceGroup() != null ? temp.getExperienceGroup().name() : null,
+                    temp.getExperienceType() != null ? temp.getExperienceType().name() : null,
                     temp.getResumeUrl(),
                     temp.getCreatedAt()
             );
