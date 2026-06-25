@@ -19,7 +19,7 @@ public class AiJobPostingResponse {
     private String startedAt;
     private String endedAt;
     private String noticeUrl;
-    private Integer headcount;
+    private String headcount;
     private String region1depth;
     private String workplaceAddress;
     private List<AiNoticeSectionDto> sections;
