@@ -2,6 +2,7 @@ package back.pickd.user.dto.onboarding;
 
 import back.pickd.user.entity.enums.DegreeType;
 import back.pickd.user.entity.enums.EnrollmentStatus;
+import back.pickd.user.entity.enums.OnboardingStep;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -59,6 +60,20 @@ public class OnboardingRequest {
     private Boolean hasPortfolio;
     private List<ExperienceDto> experiences;
     private List<CertificationDto> certifications;
+
+    /**
+     * 요청에 포함된 필드를 기반으로 현재 온보딩 단계를 판별한다.
+     * 각 단계를 나타내는 대표 필드가 null이 아니면 해당 단계로 판단한다.
+     */
+    public OnboardingStep detectStep() {
+        if (targetPeriod != null)  return OnboardingStep.COMPLETED;
+        if (industries != null)    return OnboardingStep.INTERESTS;
+        if (schoolName != null)    return OnboardingStep.EDUCATION;
+        if (nickname != null)      return OnboardingStep.BASIC;
+        if (name != null)          return OnboardingStep.VERIFICATION;
+        if (serviceAgreed != null) return OnboardingStep.TERMS;
+        return null;
+    }
 
     @Getter @NoArgsConstructor
     public static class ExperienceDto {

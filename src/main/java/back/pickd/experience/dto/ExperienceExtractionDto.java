@@ -38,8 +38,8 @@ public final class ExperienceExtractionDto {
             this.id = temp.getId();
             this.userId = temp.getUser().getId();
             this.experienceName = temp.getExperienceName();
-            this.experienceGroup = temp.getExperienceGroup();
-            this.experienceType = temp.getExperienceType();
+            this.experienceGroup = temp.getExperienceGroup() != null ? temp.getExperienceGroup().name() : null;
+            this.experienceType = temp.getExperienceType() != null ? temp.getExperienceType().name() : null;
             this.createdAt = temp.getCreatedAt();
         }
     }

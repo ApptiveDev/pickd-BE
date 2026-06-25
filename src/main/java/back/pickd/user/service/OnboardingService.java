@@ -2,15 +2,14 @@ package back.pickd.user.service;
 
 import back.pickd.user.dto.onboarding.OnboardingRequest;
 import back.pickd.experience.entity.UserExperience;
-import back.pickd.experience.enums.ExperienceGroup;
 import back.pickd.experience.enums.ExperienceType;
 import back.pickd.experience.enums.Status;
 import back.pickd.experience.repository.ExperienceExtractionBatchRepository;
 import back.pickd.experience.repository.UserExperienceRepository;
 import back.pickd.user.entity.*;
 import back.pickd.user.entity.enums.*;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import back.pickd.user.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -79,75 +78,45 @@ public class OnboardingService {
     }
 
     private void updateCurrentStep(User user, OnboardingRequest dto) {
-        if (dto.getTargetPeriod() != null) user.updateOnboardingStep(OnboardingStep.COMPLETED);
-        else if (dto.getIndustries() != null) user.updateOnboardingStep(OnboardingStep.INTERESTS);
-        else if (dto.getSchoolName() != null) user.updateOnboardingStep(OnboardingStep.EDUCATION);
-        else if (dto.getNickname() != null) user.updateOnboardingStep(OnboardingStep.BASIC);
-        else if (dto.getName() != null) user.updateOnboardingStep(OnboardingStep.VERIFICATION);
-        else if (dto.getServiceAgreed() != null) user.updateOnboardingStep(OnboardingStep.TERMS);
+        OnboardingStep step = dto.detectStep();
+        if (step != null) user.updateOnboardingStep(step);
     }
 
     private void updateListInfos(User user, OnboardingRequest dto) {
         if (dto.getExperiences() != null) {
             deleteExistingExperiences(user);
-            dto.getExperiences().forEach(e -> {
-                ExperienceType expType = ExperienceType.PROJECT;
-                ExperienceGroup expGroup = ExperienceGroup.NARRATIVE;
-                
-                String rawType = e.getType();
-                if ("AWARD".equals(rawType)) {
-                    expType = ExperienceType.AWARD;
-                    expGroup = ExperienceGroup.SPEC;
-                } else if ("INTERN".equals(rawType)) {
-                    expType = ExperienceType.INTERN;
-                    expGroup = ExperienceGroup.NARRATIVE;
-                } else if ("ACTIVITY".equals(rawType)) {
-                    expType = ExperienceType.ACTIVITY;
-                    expGroup = ExperienceGroup.NARRATIVE;
-                } else if ("PROJECT".equals(rawType)) {
-                    expType = ExperienceType.PROJECT;
-                    expGroup = ExperienceGroup.NARRATIVE;
-                }
-
-                Map<String, Object> attributes = new HashMap<>();
-                String periodVal = (e.getStartDate() != null ? e.getStartDate() : "") 
-                        + " ~ " 
-                        + (e.getEndDate() != null ? e.getEndDate() : "");
-                
-                if (expType == ExperienceType.AWARD) {
-                    attributes.put("award_date", e.getEndDate());
-                } else if (expType == ExperienceType.INTERN) {
-                    attributes.put("period", periodVal);
-                } else if (expType == ExperienceType.ACTIVITY) {
-                    attributes.put("period", periodVal);
-                } else {
-                    attributes.put("period", periodVal);
-                }
-
-                experienceRepository.save(
+            List<UserExperience> experiences = new ArrayList<>();
+            for (OnboardingRequest.ExperienceDto e : dto.getExperiences()) {
+                ExperienceType expType = ExperienceType.valueOf(e.getType());
+                experiences.add(
                     UserExperience.builder()
                         .user(user)
                         .title(e.getTitle())
                         .experienceType(expType)
-                        .experienceGroup(expGroup)
+                        .experienceGroup(expType.defaultGroup())
                         .status(Status.COMPLETED)
-                        .attributes(attributes)
+                        .attributes(expType.buildAttributes(e.getStartDate(), e.getEndDate()))
                         .documentContent("")
                         .build()
                 );
-            });
+            }
+            experienceRepository.saveAll(experiences);
         }
         if (dto.getCertifications() != null) {
             certificationRepository.deleteByUser(user);
-            dto.getCertifications().forEach(c -> certificationRepository.save(
-                UserCertification.builder()
-                    .user(user)
-                    .type("LICENSE")
-                    .name(c.getName())
-                    .score(c.getScore())
-                    .acquisitionDate(c.getAcquisitionDate())
-                    .build()
-            ));
+            List<UserCertification> certifications = new ArrayList<>();
+            for (OnboardingRequest.CertificationDto c : dto.getCertifications()) {
+                certifications.add(
+                    UserCertification.builder()
+                        .user(user)
+                        .type("LICENSE")
+                        .name(c.getName())
+                        .score(c.getScore())
+                        .acquisitionDate(c.getAcquisitionDate())
+                        .build()
+                );
+            }
+            certificationRepository.saveAll(certifications);
         }
     }
 
