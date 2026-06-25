@@ -3,6 +3,7 @@ package back.pickd.application.controller;
 import back.pickd.application.dto.request.ApplicationRequest;
 import back.pickd.application.dto.response.ApplicationResponse;
 import back.pickd.application.service.ApplicationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -22,7 +23,7 @@ public class ApplicationController {
     }
 
     @PostMapping
-    public void add(@RequestBody ApplicationRequest dto, Authentication auth) throws Exception {
+    public void add(@RequestBody @Valid ApplicationRequest dto, Authentication auth) throws Exception {
         applicationService.addApplication(dto, auth);
     }
 
@@ -33,7 +34,7 @@ public class ApplicationController {
 
     @PutMapping("/{id}")
     public void update(@PathVariable Long id,
-                       @RequestBody ApplicationRequest dto,
+                       @RequestBody @Valid ApplicationRequest dto,
                        Authentication auth) throws Exception {
         applicationService.updateApplication(id, dto, auth);
     }

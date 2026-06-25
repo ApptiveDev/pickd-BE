@@ -5,6 +5,7 @@ import back.pickd.calendar.service.CalendarService;
 import com.google.api.client.util.DateTime;
 import com.google.api.services.calendar.model.Event;
 import com.google.api.services.calendar.model.EventDateTime;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -45,7 +46,7 @@ public class CalendarRestController {
      * 일정 등록
      */
     @PostMapping("/events")
-    public Event createEvent(Authentication authentication, @RequestBody CalendarEventRequest requestDto) throws IOException, GeneralSecurityException {
+    public Event createEvent(Authentication authentication, @RequestBody @Valid CalendarEventRequest requestDto) throws IOException, GeneralSecurityException {
         Event event = new Event()
                 .setSummary(requestDto.getSummary())
                 .setLocation(requestDto.getLocation())
@@ -72,7 +73,7 @@ public class CalendarRestController {
     @PutMapping("/events/{eventId}")
     public Event updateEvent(Authentication authentication, 
                             @PathVariable String eventId, 
-                            @RequestBody CalendarEventRequest requestDto) throws IOException, GeneralSecurityException {
+                            @RequestBody @Valid CalendarEventRequest requestDto) throws IOException, GeneralSecurityException {
         
         Event existingEvent = calendarService.getEvent(authentication, eventId);
         
