@@ -3,6 +3,7 @@ package back.pickd.document.service;
 import back.pickd.application.entity.Application;
 import back.pickd.application.repository.ApplicationRepository;
 import back.pickd.document.dto.DocumentRequest;
+import back.pickd.document.dto.DocumentResponse;
 import back.pickd.document.entity.Document;
 import back.pickd.document.repository.DocumentRepository;
 import back.pickd.user.entity.User;
@@ -23,19 +24,21 @@ public class DocumentService {
     private final UserService userService;
 
     @Transactional(readOnly = true)
-    public List<Document> getDocuments(Long applicationId, Authentication auth) {
+    public List<DocumentResponse> getDocuments(Long applicationId, Authentication auth) {
         User user = userService.findByEmail(auth.getName());
-        return documentRepository.findAllByApplicationIdAndUser(applicationId, user);
+        return documentRepository.findAllByApplicationIdAndUser(applicationId, user)
+                .stream().map(DocumentResponse::new).toList();
     }
 
     @Transactional(readOnly = true)
-    public List<Document> getAllDocuments(Authentication auth) {
+    public List<DocumentResponse> getAllDocuments(Authentication auth) {
         User user = userService.findByEmail(auth.getName());
-        return documentRepository.findAllByUserOrderByIdDesc(user);
+        return documentRepository.findAllByUserOrderByIdDesc(user)
+                .stream().map(DocumentResponse::new).toList();
     }
 
     @Transactional
-    public Document addDocument(Long applicationId, DocumentRequest request, Authentication auth) {
+    public DocumentResponse addDocument(Long applicationId, DocumentRequest request, Authentication auth) {
         User user = userService.findByEmail(auth.getName());
         Application application = applicationRepository.findByIdAndUser(applicationId, user)
                 .orElseThrow(() -> new IllegalArgumentException("지원 공고를 찾을 수 없습니다."));
@@ -51,11 +54,11 @@ public class DocumentService {
                 .content(request.getContent())
                 .build();
 
-        return documentRepository.save(document);
+        return new DocumentResponse(documentRepository.save(document));
     }
 
     @Transactional
-    public Document updateDocument(Long id, DocumentRequest request, Authentication auth) {
+    public DocumentResponse updateDocument(Long id, DocumentRequest request, Authentication auth) {
         User user = userService.findByEmail(auth.getName());
         Document document = documentRepository.findByIdAndUser(id, user)
                 .orElseThrow(() -> new IllegalArgumentException("서류를 찾을 수 없습니다."));
@@ -68,7 +71,7 @@ public class DocumentService {
                 request.getProgress(),
                 request.getContent()
         );
-        return documentRepository.save(document);
+        return new DocumentResponse(document);
     }
 
     @Transactional
