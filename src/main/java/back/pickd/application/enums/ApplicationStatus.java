@@ -22,7 +22,7 @@ public enum ApplicationStatus {
     @JsonCreator
     public static ApplicationStatus from(String label) {
         for (ApplicationStatus status : values()) {
-            if (status.label.equals(label)) {
+            if (status.label.equals(label) || status.name().equals(label)) {
                 return status;
             }
         }

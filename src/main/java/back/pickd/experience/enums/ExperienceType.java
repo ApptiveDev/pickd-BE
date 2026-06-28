@@ -28,8 +28,15 @@ public enum ExperienceType {
     }
 
     public static ExperienceType fromKoreanName(String koreanName) {
+        // 1. 정확히 일치
         for (ExperienceType type : values()) {
             if (type.getKoreanName().equals(koreanName)) {
+                return type;
+            }
+        }
+        // 2. 부분 일치 (예: "인턴" → "인턴/직무경험")
+        for (ExperienceType type : values()) {
+            if (type.getKoreanName().startsWith(koreanName) || koreanName.startsWith(type.getKoreanName())) {
                 return type;
             }
         }

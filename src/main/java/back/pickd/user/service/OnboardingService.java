@@ -87,7 +87,12 @@ public class OnboardingService {
             deleteExistingExperiences(user);
             List<UserExperience> experiences = new ArrayList<>();
             for (OnboardingRequest.ExperienceDto e : dto.getExperiences()) {
-                ExperienceType expType = ExperienceType.valueOf(e.getType());
+                ExperienceType expType;
+                try {
+                    expType = ExperienceType.valueOf(e.getType());  // 영문 enum (INTERN 등)
+                } catch (IllegalArgumentException ex) {
+                    expType = ExperienceType.fromKoreanName(e.getType());  // 한국어 (인턴 등)
+                }
                 experiences.add(
                     UserExperience.builder()
                         .user(user)
