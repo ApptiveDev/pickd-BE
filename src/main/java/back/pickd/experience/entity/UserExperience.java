@@ -6,6 +6,7 @@ import back.pickd.experience.enums.Status;
 import back.pickd.user.entity.User;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
 
@@ -60,10 +61,12 @@ public class UserExperience {
     @Builder.Default
     private List<String> keywords = new ArrayList<>();
 
+    @BatchSize(size = 30)
     @OneToMany(mappedBy = "userExperience", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ExperienceLink> links = new ArrayList<>();
 
+    @BatchSize(size = 30)
     @OneToMany(mappedBy = "userExperience", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<ExperienceFile> files = new ArrayList<>();

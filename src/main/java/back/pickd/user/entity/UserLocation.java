@@ -26,7 +26,9 @@ public class UserLocation {
     private String currentResidence;
 
     @ElementCollection
-    @CollectionTable(name = "user_desired_locations", joinColumns = @JoinColumn(name = "user_location_id"))
+    @CollectionTable(name = "user_desired_locations",
+            joinColumns = @JoinColumn(name = "user_location_id"),
+            indexes = @Index(name = "idx_user_desired_locations", columnList = "user_location_id"))
     @Column(name = "location")
     private List<String> desiredLocations = new ArrayList<>();
 

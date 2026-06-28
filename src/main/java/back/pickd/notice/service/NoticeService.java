@@ -62,7 +62,7 @@ public class NoticeService {
                 .startedAt(aiResponse.getStartedAt())
                 .endedAt(aiResponse.getEndedAt())
                 .employmentType(convertEmploymentType(aiResponse.getEmploymentType()))
-                .headcount(aiResponse.getHeadcount() != null ? String.valueOf(aiResponse.getHeadcount()) : "0")
+                .headcount(aiResponse.getHeadcount())
                 .region1depth(aiResponse.getRegion1depth())
                 .workplaceAddress(aiResponse.getWorkplaceAddress())
                 .noticeUrl(url != null ? url : aiResponse.getNoticeUrl())

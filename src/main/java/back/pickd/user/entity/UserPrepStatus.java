@@ -29,7 +29,9 @@ public class UserPrepStatus {
     private String currentStage;
 
     @ElementCollection
-    @CollectionTable(name = "user_focus_items", joinColumns = @JoinColumn(name = "user_prep_status_id"))
+    @CollectionTable(name = "user_focus_items",
+            joinColumns = @JoinColumn(name = "user_prep_status_id"),
+            indexes = @Index(name = "idx_user_focus_items", columnList = "user_prep_status_id"))
     @Column(name = "focus_item")
     private List<String> focusItems = new ArrayList<>();
 
@@ -43,7 +45,9 @@ public class UserPrepStatus {
     private boolean hasPortfolio;
 
     @ElementCollection
-    @CollectionTable(name = "user_preparing_exams", joinColumns = @JoinColumn(name = "user_prep_status_id"))
+    @CollectionTable(name = "user_preparing_exams",
+            joinColumns = @JoinColumn(name = "user_prep_status_id"),
+            indexes = @Index(name = "idx_user_preparing_exams", columnList = "user_prep_status_id"))
     @Column(name = "exam_name")
     private List<String> preparingExams = new ArrayList<>();
 
