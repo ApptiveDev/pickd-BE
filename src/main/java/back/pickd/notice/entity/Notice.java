@@ -79,6 +79,21 @@ public class Notice {
         this.noticeUrl = noticeUrl;
     }
 
+    public void update(String companyName, String noticeName, JobCategory category,
+                       String startedAt, String endedAt, EmploymentType employmentType,
+                       String headcount, String region1depth, String workplaceAddress, String noticeUrl) {
+        if (companyName  != null) this.companyName  = companyName;
+        if (noticeName   != null) this.noticeName   = noticeName;
+        if (category     != null) this.category     = category;
+        if (startedAt    != null) this.startedAt    = startedAt;
+        if (endedAt      != null) this.endedAt      = endedAt;
+        if (employmentType != null) this.employmentType = employmentType;
+        if (headcount    != null) this.headcount    = headcount;
+        if (region1depth != null) this.region1depth = region1depth;
+        if (workplaceAddress != null) this.workplaceAddress = workplaceAddress;
+        if (noticeUrl    != null) this.noticeUrl    = noticeUrl;
+    }
+
     public void addSection(NoticeSection section) {
         sections.add(section);
         section.assignToNotice(this);
