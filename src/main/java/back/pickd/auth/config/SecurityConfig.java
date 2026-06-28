@@ -67,6 +67,7 @@ public class SecurityConfig {
                     "/onboarding-test.html",
                     "/experience-extraction-test",
                     "/api/experiences/extract/temp-token",
+                    "/internal/seed/**",
                     "/swagger-ui.html",
                     "/swagger-ui/**",
                     "/v3/api-docs/**"

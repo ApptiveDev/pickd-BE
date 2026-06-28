@@ -34,13 +34,20 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     }
 
     private String resolveToken(HttpServletRequest request) {
+        // 1. 쿠키 우선 (실제 서비스 흐름)
         Cookie[] cookies = request.getCookies();
         if (cookies != null) {
-            return Arrays.stream(cookies)
+            String fromCookie = Arrays.stream(cookies)
                     .filter(c -> "accessToken".equals(c.getName()))
                     .findFirst()
                     .map(Cookie::getValue)
                     .orElse(null);
+            if (fromCookie != null) return fromCookie;
+        }
+        // 2. Authorization 헤더 fallback (Swagger UI 테스트용)
+        String bearer = request.getHeader("Authorization");
+        if (bearer != null && bearer.startsWith("Bearer ")) {
+            return bearer.substring(7);
         }
         return null;
     }

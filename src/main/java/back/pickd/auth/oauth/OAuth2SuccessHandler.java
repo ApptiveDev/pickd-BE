@@ -6,6 +6,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClient;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientService;
@@ -17,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.util.Map;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -41,25 +44,26 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                     (String) attributes.get("picture")
             );
 
-            OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(
-                    oauthToken.getAuthorizedClientRegistrationId(),
-                    oauthToken.getName()
-            );
-
-            if (client != null) {
-                Authentication newAuth =
-                        new org.springframework.security.authentication.UsernamePasswordAuthenticationToken(
-                                email, null, authentication.getAuthorities()
-                        );
-
-                authorizedClientService.saveAuthorizedClient(client, newAuth);
-            }
-
+            // JWT 발급 및 쿠키 설정 (핵심 로그인 흐름 — 먼저 처리)
             String token = jwtTokenProvider.createToken(email, authentication.getAuthorities());
             setTokenCookie(response, token);
 
-            // 테스트를 위해 백엔드 포트의 테스트 페이지로 이동
-            response.sendRedirect("http://localhost:8080/onboarding-test.html");
+            // Google Calendar/Drive 클라이언트 저장 (실패해도 로그인은 정상 처리)
+            try {
+                OAuth2AuthorizedClient client = authorizedClientService.loadAuthorizedClient(
+                        oauthToken.getAuthorizedClientRegistrationId(),
+                        oauthToken.getName()
+                );
+                if (client != null) {
+                    UsernamePasswordAuthenticationToken newAuth =
+                            new UsernamePasswordAuthenticationToken(email, null, authentication.getAuthorities());
+                    authorizedClientService.saveAuthorizedClient(client, newAuth);
+                }
+            } catch (Exception e) {
+                log.warn("OAuth2 authorized client 저장 실패 (캘린더/드라이브 연동 불가): {}", e.getMessage());
+            }
+
+            response.sendRedirect("http://localhost:5173/onboarding");
         }
     }
 
