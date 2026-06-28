@@ -47,3 +47,9 @@ tokens/
 
 # YAML Secret files
 application-local.yml
+
+# macOS
+.DS_Store
+
+# PR/temp docs
+pr_body_*.md
