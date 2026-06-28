@@ -14,6 +14,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -50,7 +51,7 @@ public class NoticeController {
         return ResponseEntity.ok(Map.of("noticeId", noticeId));
     }
 
-    @PostMapping("/analyze/pdf")
+    @PostMapping(value = "/analyze/pdf", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "PDF 기반 채용공고 분석",
             description = "채용공고 PDF 파일을 AI로 분석하여 저장하고 noticeId를 반환합니다."
@@ -65,7 +66,10 @@ public class NoticeController {
     })
     public ResponseEntity<Map<String, Long>> analyzeNoticePdf(
             @Parameter(hidden = true) Authentication authentication,
-            @Parameter(description = "채용공고 PDF 파일", required = true) @RequestParam("file") MultipartFile file) {
+            @Parameter(description = "채용공고 PDF 파일", required = true,
+                    content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(type = "string", format = "binary")))
+            @RequestParam("file") MultipartFile file) {
         Long noticeId = noticeService.analyzeAndSaveNoticePdf(authentication.getName(), file);
         return ResponseEntity.ok(Map.of("noticeId", noticeId));
     }

@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -27,7 +28,7 @@ public class FileController {
 
     private final FileService fileService;
 
-    @PostMapping("/upload")
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "파일 업로드",
             description = "이력서, 자격증, 수료증 등을 S3에 업로드하고 CloudFront URL을 반환합니다."
@@ -42,7 +43,10 @@ public class FileController {
     })
     public ResponseEntity<UploadedFileResponse> uploadFile(
             @Parameter(hidden = true) Authentication authentication,
-            @Parameter(description = "업로드할 파일", required = true) @RequestParam("file") MultipartFile file,
+            @Parameter(description = "업로드할 파일", required = true,
+                    content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(type = "string", format = "binary")))
+            @RequestParam("file") MultipartFile file,
             @Parameter(description = "파일 유형", required = true) @RequestParam("type") FileUploadType type) {
         if (authentication == null) {
             return ResponseEntity.status(401).build();
