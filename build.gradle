@@ -62,4 +62,18 @@ dependencies {
 
 tasks.named('test') {
 	useJUnitPlatform()
+	// 통합 테스트는 기본 test task에서 제외 (Context 전체 로딩으로 느림)
+	exclude '**/*IntegrationTest*'
+	exclude '**/PickdApplicationTests*'
+	// JUnit 5 @Nested inner class는 outer class가 자동 실행 — Gradle 중복 탐지 방지
+	exclude '**/*$*'
+}
+
+// 통합 테스트만 별도 실행: ./gradlew integrationTest
+tasks.register('integrationTest', Test) {
+	useJUnitPlatform()
+	include '**/*IntegrationTest*'
+	include '**/PickdApplicationTests*'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
 }
