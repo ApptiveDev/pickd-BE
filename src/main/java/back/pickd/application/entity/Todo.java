@@ -64,6 +64,12 @@ public class Todo {
         this.completed = !this.completed;
     }
 
+    public void update(String title, LocalDateTime dueDateTime, String memo) {
+        if (title      != null) this.title       = title;
+        if (dueDateTime != null) this.dueDateTime = dueDateTime;
+        if (memo       != null) this.memo        = memo;
+    }
+
     public void assignCalendarEventId(String eventId) {
         this.calendarEventId = eventId;
     }

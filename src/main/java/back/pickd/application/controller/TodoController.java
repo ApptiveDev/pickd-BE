@@ -65,7 +65,21 @@ public class TodoController {
         return todoService.getTodosByApplication(applicationId, authentication);
     }
 
-    @PutMapping("/{id}")
+    @PatchMapping("/{id}")
+    @Operation(summary = "할 일 수정", description = "할 일의 title, dueDateTime, memo를 부분 수정합니다.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "수정 성공",
+                    content = @Content(schema = @Schema(implementation = TodoResponse.class))),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+                    content = @Content(schema = @Schema(implementation = ErrorResponse.class)))
+    })
+    public TodoResponse updateTodo(@PathVariable Long id,
+                                   @RequestBody TodoRequest dto,
+                                   @Parameter(hidden = true) Authentication authentication) {
+        return todoService.updateTodo(id, dto, authentication);
+    }
+
+    @PutMapping("/{id}/toggle")
     @Operation(summary = "할 일 완료 토글", description = "할 일의 완료 상태를 반전시킵니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "토글 성공"),

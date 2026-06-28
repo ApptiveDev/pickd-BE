@@ -7,6 +7,7 @@ import back.pickd.application.enums.ApplicationStatus;
 import back.pickd.application.repository.ApplicationRepository;
 import back.pickd.calendar.service.CalendarAsyncService;
 import back.pickd.notice.entity.Notice;
+import back.pickd.notice.enums.JobCategory;
 import back.pickd.notice.repository.NoticeRepository;
 import back.pickd.user.entity.User;
 import back.pickd.user.service.UserService;
@@ -42,10 +43,29 @@ public class ApplicationService {
         User user = userService.findByEmail(auth.getName());
         ApplicationStatus status = dto.getStatus();
 
-        Notice notice = null;
+        Notice notice;
         if (dto.getNoticeId() != null) {
+            // 기존 AI 분석 공고와 연결
             notice = noticeRepository.findByIdAndUser(dto.getNoticeId(), user)
                     .orElseThrow(() -> new IllegalArgumentException("공고를 찾을 수 없습니다."));
+        } else {
+            // 수기 입력: 최소 정보로 Notice 자동 생성
+            String companyName = dto.getCompany() != null ? dto.getCompany() : "미입력";
+            String noticeName  = dto.getJobTitle() != null ? dto.getJobTitle() : "미입력";
+            JobCategory category = dto.getCategory() != null ? dto.getCategory() : JobCategory.FULL_TIME;
+            String startedAt = dto.getStartedAt() != null ? dto.getStartedAt()
+                    : java.time.LocalDate.now().toString();
+
+            notice = noticeRepository.save(
+                    Notice.builder()
+                            .user(user)
+                            .companyName(companyName)
+                            .noticeName(noticeName)
+                            .category(category)
+                            .startedAt(startedAt)
+                            .endedAt(dto.getEndedAt())
+                            .build()
+            );
         }
 
         Application app = Application.builder()

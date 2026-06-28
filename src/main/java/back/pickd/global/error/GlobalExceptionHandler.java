@@ -4,6 +4,7 @@ import back.pickd.experience.dto.ExperienceMergeDto.Conflict;
 import back.pickd.experience.exception.ExperienceMergeConflictException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.core.OAuth2AuthenticationException;
@@ -46,6 +47,10 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({IOException.class, GeneralSecurityException.class})
     public ResponseEntity<ErrorResponse> handleGoogleApiException(Exception e, HttpServletRequest request) {
+        if (e instanceof ClientAbortException) {
+            log.debug("Client aborted connection (broken pipe): {}", request.getRequestURI());
+            return null;
+        }
         log.error("Google API Exception: {}", e.getMessage(), e);
         return buildErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "구글 API 연동 중 오류가 발생했습니다.", request);
     }

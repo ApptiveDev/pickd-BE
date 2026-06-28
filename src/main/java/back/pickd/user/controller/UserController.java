@@ -13,6 +13,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.http.MediaType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -43,7 +44,7 @@ public class UserController {
         return ResponseEntity.ok(UserProfileDto.from(user));
     }
 
-    @PostMapping("/profile-image")
+    @PostMapping(value = "/profile-image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "프로필 이미지 업로드", description = "프로필 이미지를 S3에 업로드하고 URL을 반환합니다.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "업로드 성공",
@@ -53,7 +54,10 @@ public class UserController {
     })
     public ResponseEntity<Map<String, String>> uploadProfileImage(
             @Parameter(hidden = true) Authentication authentication,
-            @Parameter(description = "업로드할 이미지 파일", required = true) @RequestParam("file") MultipartFile file) {
+            @Parameter(description = "업로드할 이미지 파일", required = true,
+                    content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(type = "string", format = "binary")))
+            @RequestParam("file") MultipartFile file) {
         String profileImageUrl = userService.updateProfileImage(authentication.getName(), file);
         return ResponseEntity.ok(Map.of("profileImageUrl", profileImageUrl));
     }

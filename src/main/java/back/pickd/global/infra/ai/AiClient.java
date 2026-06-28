@@ -181,4 +181,18 @@ public class AiClient {
                 .retrieve()
                 .body(AiJobPostingResponse.class);
     }
+
+    public AiJobPostingResponse analyzeNoticeImages(List<MultipartFile> files) {
+        MultipartBodyBuilder bodyBuilder = new MultipartBodyBuilder();
+        for (MultipartFile file : files) {
+            bodyBuilder.part("files", file.getResource());
+        }
+
+        return restClient.post()
+                .uri("/api/v1/analyze/image")
+                .contentType(MediaType.MULTIPART_FORM_DATA)
+                .body(bodyBuilder.build())
+                .retrieve()
+                .body(AiJobPostingResponse.class);
+    }
 }

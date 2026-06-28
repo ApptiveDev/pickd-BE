@@ -19,7 +19,7 @@ public enum DocumentType {
     @JsonCreator
     public static DocumentType from(String label) {
         for (DocumentType t : values()) {
-            if (t.label.equals(label)) return t;
+            if (t.label.equals(label) || t.name().equals(label)) return t;
         }
         throw new IllegalArgumentException("지원하지 않는 서류 유형입니다: " + label);
     }

@@ -19,6 +19,7 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -42,7 +43,7 @@ public class ExperienceExtractionController {
 
     private final ExperienceExtractionService extractionService;
 
-    @PostMapping("/step1")
+    @PostMapping(value = "/step1", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "경험 후보 1차 추출",
             description = """
@@ -63,7 +64,9 @@ public class ExperienceExtractionController {
     })
     public ResponseEntity<List<TempResponse>> extractStep1(
             @Parameter(hidden = true) Authentication authentication,
-            @Parameter(description = "자소서 PDF/문서 파일", required = true)
+            @Parameter(description = "자소서 PDF/문서 파일", required = true,
+                    content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(type = "string", format = "binary")))
             @RequestParam("file") MultipartFile file) {
 
         List<TempResponse> result = extractionService.extractStep1(authentication.getName(), file)
@@ -76,6 +79,7 @@ public class ExperienceExtractionController {
     @PostMapping("/step2")
     @Operation(
             summary = "선택 경험 상세 추출 및 저장 (V1)",
+            deprecated = true,
             description = """
                     step1에서 선택한 임시 경험 ID를 받아 AI 2차 분석 후 영구 저장합니다.
 
@@ -111,6 +115,7 @@ public class ExperienceExtractionController {
     @PostMapping("/step3")
     @Operation(
             summary = "중복 경험 후처리 (V1)",
+            deprecated = true,
             description = """
                     step2에서 중복으로 분류된 경험을 CREATE_NEW 또는 SKIP 처리합니다.
 

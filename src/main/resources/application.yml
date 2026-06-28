@@ -59,4 +59,9 @@ aws:
   cloudfront:
     domain: ${AWS_CLOUDFRONT_DOMAIN:https://cdn.pickd.co.kr}
 
+# Admin 대시보드 Basic Auth (실제 값은 application-local.yml 또는 환경변수로 주입)
+admin:
+  username: ${ADMIN_USERNAME:admin}
+  password: ${ADMIN_PASSWORD:}
+
 

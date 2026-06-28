@@ -18,7 +18,7 @@ public enum DocumentStatus {
     @JsonCreator
     public static DocumentStatus from(String label) {
         for (DocumentStatus s : values()) {
-            if (s.label.equals(label)) return s;
+            if (s.label.equals(label) || s.name().equals(label)) return s;
         }
         throw new IllegalArgumentException("지원하지 않는 서류 상태입니다: " + label);
     }
