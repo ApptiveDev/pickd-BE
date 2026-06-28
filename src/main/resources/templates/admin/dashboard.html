@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PICKD Admin — ENUM 검증 대시보드</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: #0f1117;
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 32px 24px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 32px;
+        }
+
+        header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #f8fafc;
+            letter-spacing: -0.3px;
+        }
+
+        header h1 span {
+            color: #6366f1;
+        }
+
+        .meta {
+            font-size: 12px;
+            color: #64748b;
+        }
+
+        /* Summary cards */
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 36px;
+            max-width: 640px;
+        }
+
+        .card {
+            background: #1e2130;
+            border: 1px solid #2d3148;
+            border-radius: 12px;
+            padding: 20px 24px;
+        }
+
+        .card-label {
+            font-size: 12px;
+            color: #64748b;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            margin-bottom: 8px;
+        }
+
+        .card-value {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .card-value.pass { color: #22c55e; }
+        .card-value.fail { color: #ef4444; }
+        .card-value.total { color: #f8fafc; }
+
+        /* Table */
+        .table-wrap {
+            background: #1e2130;
+            border: 1px solid #2d3148;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13.5px;
+        }
+
+        thead {
+            background: #161824;
+        }
+
+        thead th {
+            padding: 14px 16px;
+            text-align: left;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: #64748b;
+            font-weight: 600;
+            border-bottom: 1px solid #2d3148;
+        }
+
+        tbody tr {
+            border-bottom: 1px solid #252840;
+            transition: background 0.1s;
+        }
+
+        tbody tr:last-child { border-bottom: none; }
+
+        tbody tr:hover { background: #252840; }
+
+        tbody td {
+            padding: 12px 16px;
+            vertical-align: top;
+        }
+
+        /* Status badge */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+        }
+
+        .badge-pass {
+            background: #052e16;
+            color: #22c55e;
+            border: 1px solid #166534;
+        }
+
+        .badge-fail {
+            background: #2d0b0b;
+            color: #ef4444;
+            border: 1px solid #7f1d1d;
+        }
+
+        /* Enum chips */
+        .chip-wrap {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+
+        .chip {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: "SF Mono", "Fira Code", monospace;
+        }
+
+        .chip-ok {
+            background: #1a2e1a;
+            color: #86efac;
+            border: 1px solid #166534;
+        }
+
+        .chip-bad {
+            background: #2d0b0b;
+            color: #fca5a5;
+            border: 1px solid #7f1d1d;
+        }
+
+        .chip-db {
+            background: #1e1a2e;
+            color: #c4b5fd;
+            border: 1px solid #4c1d95;
+        }
+
+        .col-table { width: 160px; }
+        .col-column { width: 160px; }
+        .col-enum { width: 160px; }
+        .col-rows { width: 70px; text-align: right; color: #64748b; }
+        .col-status { width: 80px; }
+        .col-db { }
+        .col-invalid { }
+
+        .empty-state {
+            color: #4a5568;
+            font-style: italic;
+            font-size: 12px;
+        }
+
+        .table-name {
+            font-family: "SF Mono", "Fira Code", monospace;
+            color: #7dd3fc;
+        }
+
+        .column-name {
+            font-family: "SF Mono", "Fira Code", monospace;
+            color: #fbbf24;
+        }
+
+        .enum-name {
+            font-family: "SF Mono", "Fira Code", monospace;
+            color: #a78bfa;
+            font-size: 12px;
+        }
+
+        .refresh-btn {
+            background: #6366f1;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .refresh-btn:hover { background: #4f46e5; }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .section-title {
+            font-size: 14px;
+            font-weight: 600;
+            color: #94a3b8;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>PICKD <span>Admin</span> — ENUM 검증 대시보드</h1>
+    <div class="meta">
+        점검 시각: <span th:text="${#temporals.format(checkedAt, 'yyyy-MM-dd HH:mm:ss')}">2024-01-01 00:00:00</span>
+    </div>
+</header>
+
+<!-- Summary -->
+<div class="summary">
+    <div class="card">
+        <div class="card-label">전체</div>
+        <div class="card-value total" th:text="${total}">0</div>
+    </div>
+    <div class="card">
+        <div class="card-label">PASS</div>
+        <div class="card-value pass" th:text="${passCount}">0</div>
+    </div>
+    <div class="card">
+        <div class="card-label">FAIL</div>
+        <div class="card-value fail" th:text="${failCount}">0</div>
+    </div>
+</div>
+
+<!-- Table -->
+<div class="section-header">
+    <div class="section-title">테이블별 ENUM 컬럼 검증 결과</div>
+    <a class="refresh-btn" href="/admin/validation">↻ 새로고침</a>
+</div>
+
+<div class="table-wrap">
+    <table>
+        <thead>
+        <tr>
+            <th class="col-status">상태</th>
+            <th class="col-table">테이블</th>
+            <th class="col-column">컬럼</th>
+            <th class="col-enum">Enum 클래스</th>
+            <th class="col-rows">rows</th>
+            <th class="col-db">DB 저장값</th>
+            <th class="col-invalid">비정상 값</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="r : ${results}">
+            <td>
+                <span class="badge"
+                      th:classappend="${r.passed} ? 'badge-pass' : 'badge-fail'"
+                      th:text="${r.statusBadge()}">PASS</span>
+            </td>
+            <td><span class="table-name" th:text="${r.tableName()}">table</span></td>
+            <td><span class="column-name" th:text="${r.columnName()}">col</span></td>
+            <td><span class="enum-name" th:text="${r.enumClass()}">Enum</span></td>
+            <td class="col-rows" th:text="${r.totalRows() >= 0 ? r.totalRows() : '—'}">0</td>
+            <td>
+                <div class="chip-wrap">
+                    <span th:each="v : ${r.dbValues()}"
+                          class="chip"
+                          th:classappend="${r.invalidValues().contains(v)} ? 'chip-bad' : 'chip-db'"
+                          th:text="${v}">VAL</span>
+                    <span class="empty-state" th:if="${#lists.isEmpty(r.dbValues())}">데이터 없음</span>
+                </div>
+            </td>
+            <td>
+                <div class="chip-wrap">
+                    <span th:each="v : ${r.invalidValues()}"
+                          class="chip chip-bad"
+                          th:text="${v}">BAD</span>
+                    <span class="empty-state" th:if="${#lists.isEmpty(r.invalidValues())}">—</span>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+</body>
+</html>
