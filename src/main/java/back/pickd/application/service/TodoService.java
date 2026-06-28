@@ -81,6 +81,14 @@ public class TodoService {
         todo.toggleCompleted();
     }
 
+    public TodoResponse updateTodo(Long id, TodoRequest dto, Authentication authentication) {
+        User user = userService.findByEmail(authentication.getName());
+        Todo todo = todoRepository.findByIdAndUser(id, user)
+                .orElseThrow(() -> new IllegalArgumentException("할 일을 찾을 수 없습니다."));
+        todo.update(dto.getTitle(), parseDueDateTime(dto.getDueDateTime()), dto.getMemo());
+        return TodoResponse.from(todo);
+    }
+
     public void deleteTodo(Long id, Authentication authentication) {
         User user = userService.findByEmail(authentication.getName());
         Todo todo = todoRepository.findByIdAndUser(id, user)
